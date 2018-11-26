@@ -5,12 +5,18 @@
 #==================================================================================================================================================
 
 import curses
-import threading
+import time
+import sys
 
 def introMessage():
-    
-    print("The Zombie game will be launched in 5 seconds")
-    
+
+    seconds = [5, 4, 3, 2, 1]
+    for second in seconds:
+       print("The Zombie game will be launched in " + str(second) + " seconds", end = "\r")
+       time.sleep(1)
+        
+       
+
 def runGame():
 
     screen = curses.initscr()
@@ -32,5 +38,4 @@ def runGame():
      
       
 introMessage()
-timer = threading.Timer(5.0, runGame)
-timer.start()
+runGame()
