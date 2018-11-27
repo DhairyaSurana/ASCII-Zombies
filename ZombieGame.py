@@ -6,16 +6,17 @@
 
 import curses
 import time
-import sys
 
 def introMessage():
 
-    seconds = [5, 4, 3, 2, 1]
-    for second in seconds:
-       print("The Zombie game will be launched in " + str(second) + " seconds", end = "\r")
+    for second in range(5, 0, -1):
+       if(second != 1):
+           print("The Zombie game will be launched in " + str(second) + " seconds", end = "\r")
+       else:
+           print("The Zombie game will be launched in " + str(second) + " second ", end = "\r")
+
        time.sleep(1)
         
-       
 
 def runGame():
 
@@ -34,8 +35,6 @@ def runGame():
             curses.endwin()
             quit()
        
-
-     
       
 introMessage()
 runGame()
