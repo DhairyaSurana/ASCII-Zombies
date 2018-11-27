@@ -10,6 +10,7 @@ import time
 def introMessage():
 
     for second in range(5, 0, -1):
+        
        if(second != 1):
            print("The Zombie game will be launched in " + str(second) + " seconds", end = "\r")
        else:
@@ -25,15 +26,16 @@ def runGame():
     sh, sw = screen.getmaxyx()
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
+    w.border('|', '|', '-', '-', '+', '+', '+', '+')
     w.timeout(100)
 
-    key = w.getch()
-
+    
+    
     while (True):
+
+        key = w.getch()
+
         
-        if(key == curses.KEY_ENTER):
-            curses.endwin()
-            quit()
        
       
 introMessage()
