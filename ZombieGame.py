@@ -6,6 +6,8 @@
 
 import curses
 import time
+from math import *
+
 
 def introMessage():
 
@@ -19,24 +21,27 @@ def introMessage():
        time.sleep(1)
         
 
+
 def runGame():
 
     screen = curses.initscr()
     curses.curs_set(0)
+    
     sh, sw = screen.getmaxyx()
     w = curses.newwin(sh, sw, 0, 0)
     w.keypad(1)
-    w.border('|', '|', '-', '-', '+', '+', '+', '+')
+    w.border(0)
     w.timeout(100)
-
+    curses.initscr()
     
     
     while (True):
 
         key = w.getch()
-
         
-       
+
       
 introMessage()
 runGame()
+
+
