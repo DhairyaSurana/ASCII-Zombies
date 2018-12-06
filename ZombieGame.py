@@ -19,8 +19,19 @@ def introMessage():
            print("The Zombie game will be launched in " + str(second) + " second ", end = "\r")
 
        time.sleep(1)
-        
 
+    
+
+def printTextSlowly(text):
+
+    for character in text:
+        print(character, end = '')
+        time.sleep(0.125)
+
+
+def displayIntroScreen():
+
+    printTextSlowly("Sudochad Stud|os presents...")
 
 def runGame():
 
@@ -40,8 +51,10 @@ def runGame():
         key = w.getch()
         
 
-      
-introMessage()
-runGame()
+
+#printTextSlowly("gay man")
+#introMessage()
+displayIntroScreen()
+#runGame()
 
 
