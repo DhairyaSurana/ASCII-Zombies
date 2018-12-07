@@ -1,13 +1,18 @@
+import threading
 import random
 import curses
 import time
 import sys
+# pygame looks cool, but I couldn't install it quick, and we want the game to be portable..idk
+# import pygame
+# from pygame.locals import *
+# clock = pygame.time.Clock()
+
 
 # TODO come to a conclusion on how we'll be sharing all the variables..
-# to-be shared variables:
+# currently shared variables:
 # window
-# map .. aka objects on and off the screen aka a big ass array.. BAH NO - lets use a struct!
-# key pressed.. actually not nessecary (we can run get key in each function)
+# map .. lets use a struct!
 
 #def init_screen(window): 
 s = curses.initscr()
@@ -20,7 +25,7 @@ window.timeout(100) #and this?
 
 class ze_map_class:
     hero = [ [0,0],[0,0] ] # change size as needed.
-    
+    baddies = [[0,0]]    
 
 def init_map(ze_map):
     hero_x =  sw / 4
@@ -29,6 +34,10 @@ def init_map(ze_map):
     ze_map.hero = [
         [hero_y, hero_x],
         [hero_y, hero_x-1],
+    ] 
+
+    baddies = [
+        [hero_y/2, hero_x/2],
     ] 
 
 
@@ -69,15 +78,38 @@ def move_hero(ze_map):
     window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
 
 
+def move_baddies(ze_map):
+
+    #clear
+    #window.addch(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), ' ')
+    window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), '  ')
+
+    #calculate
+    target = [ze_map.hero[0][0],ze_map.hero[0][1]] #hero's "head"
+    
+    if ze_map.baddies[0][0] < target[0]:
+        ze_map.baddies[0][0] += 1
+    elif ze_map.baddies[0][0] > target[0]:
+        ze_map.baddies[0][0] -= 1
+
+    #place
+    #window.addch(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), '):')
+    window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), '):')
+
+
 def main():
     ze_map = ze_map_class()
     init_map(ze_map)
 
     display_title()
 
+
     while True: #TODO stop shit from going off screen and breaking the program lol
         move_hero(ze_map)
+        #TODO figure out how to put the baddies function on a timer
         #move_baddies(ze_map)
+
+        
 
 
 """
