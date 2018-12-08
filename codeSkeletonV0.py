@@ -18,6 +18,9 @@ from pygame.locals import *
 
 ####### </RANDOM THOUGHTS> ########
 
+
+     
+
 ####### INITILIZATIONZ ###########
 
 s = curses.initscr()
@@ -26,10 +29,17 @@ sh, sw = s.getmaxyx() #TODO CREATE A SET SCREEN SIZE.
 window = curses.newwin(sh, sw, 0, 0)
 window.nodelay(True)    #does this actually work?
 window.keypad(1)    #What does this do?
+
+
+curses.start_color()
+
+#window.addstr((sh // 2) - 5, (sw // 2) - 15, "Sudochad Stud|os presents . . .", curses.color_pair(YELLOW_TEXT))
+
 window.border(0)
 window.timeout(100) #and this?
 
-pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
+#the pygame init function was causing a lot of errors 
+#pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
 ####### </INITILIZATIONZ> ###########
 
@@ -53,6 +63,17 @@ class ze_map_class:
     #     ] 
 
 
+def dynamic_print(timeSpan, x, y, text, color):
+
+     tempX = x
+
+     for i in range(len(text)):
+        window.addstr(y, tempX, text[i], curses.color_pair(color))
+        window.refresh()
+        time.sleep(timeSpan)
+        tempX+=1
+
+
 def init_map(ze_map, lock):
     ze_map.lock = lock
     
@@ -68,6 +89,22 @@ def init_map(ze_map, lock):
         [hero_y/2, hero_x/2],
     ] 
 
+def display_intro_message():
+
+    YELLOW_TEXT = 1
+    RED_TEXT = 2
+
+    curses.init_pair(YELLOW_TEXT, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+
+    dynamic_print(0.2,(sw // 2) - 15, (sh // 2) - 5, "Sudochad Stud|os presents ...", YELLOW_TEXT)
+    time.sleep(3)
+    dynamic_print(0.1, (sw // 2) - 15, (sh // 2) - 5, "                             ", YELLOW_TEXT)
+    
+    curses.init_pair(RED_TEXT, curses.COLOR_RED, curses.COLOR_BLACK)
+    dynamic_print(0.5, (sw // 2) - 10, (sh // 2), "ASCII ZOMBIES", RED_TEXT)
+    time.sleep(2)
+    dynamic_print(0.05, (sw // 2) - 10, (sh // 2), "              ", RED_TEXT)
+
 
 def display_title():
     sys.stdout.flush()
@@ -75,8 +112,8 @@ def display_title():
     crash_sound = pygame.mixer.Sound("crash.wav")
     pygame.mixer.Sound.play(crash_sound)
 
-    # pygame.mixer.music.load('jazz.wav') #works!
-    # pygame.mixer.music.play(-1)
+    pygame.mixer.music.load('jazz.wav') #works!
+    pygame.mixer.music.play(-1)
     
     text = "Sudochad Stud|os presents..."
     for character in text:
@@ -150,7 +187,12 @@ def main():
     lock = threading.Lock()
     init_map(ze_map, lock)
 
-    display_title()
+
+    
+    display_intro_message()
+    
+    
+    #display_title()
 
     
     #baddies_thread = threading.Thread(target=move_baddies,args=ze_map)
@@ -166,6 +208,7 @@ def main():
         #     quit()
 
         move_hero(ze_map)
+        
         
     #baddies_thread.join()
     #t1.join()
