@@ -7,8 +7,6 @@ import time
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
 
-
-
 # clock = pygame.time.Clock()
 
 ####### <RANDOM THOUGHTS> #######
@@ -87,12 +85,11 @@ def display_title():
         #time.sleep(.03)
         sys.stdout.flush()
     time.sleep(.12)
-    print("aSDKLFHASDFJK")
 
 
 def move_hero(ze_map):
 
-    ze_map.lock.acquire() # (;
+    #ze_map.lock.acquire() # (;
 
     key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
 
@@ -118,7 +115,7 @@ def move_hero(ze_map):
     window.addch(int(ze_map.hero[0][0]),int(ze_map.hero[0][1]), '8')
     window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
    
-    ze_map.lock.release() # ;)
+    #ze_map.lock.release() # ;)
 
 def move_baddies(ze_map, lock):
 
@@ -142,6 +139,12 @@ def move_baddies(ze_map, lock):
         ze_map.lock.release()
         time.sleep(0.5)
 
+def test_threading(bleh, y):
+    time.sleep(5)
+    print("diiiiiicj")
+    print(bleh)
+    print(y)
+
 def main():
     ze_map = ze_map_class()
     lock = threading.Lock()
@@ -149,19 +152,23 @@ def main():
 
     display_title()
 
-    print("asdfasd")
+    
     #baddies_thread = threading.Thread(target=move_baddies,args=ze_map)
     #baddies_thread.start()    
+    # bleh = "bnlkasdjf"
+    # y = "asd"
+    # t1 = threading.Thread(target=test_threading, args=(bleh,y))
+    # t1.start()
 
     while True: #TODO stop shit from going off screen and breaking the program lol
-        key = window.getch() 
-        if key == 'p':
-            exit()
+        # key = window.getch() 
+        # if key == 'p':
+        #     quit()
 
         move_hero(ze_map)
         
     #baddies_thread.join()
-
+    #t1.join()
         
 
 
