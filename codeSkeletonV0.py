@@ -28,6 +28,7 @@ sh, sw = s.getmaxyx() #TODO CREATE A SET SCREEN SIZE.
 window = curses.newwin(sh, sw, 0, 0)
 window.nodelay(True)    #does this actually work?
 window.keypad(1)    #What does this do?
+window.border(0)
 window.timeout(100) #and this?
 
 pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
@@ -82,8 +83,8 @@ def display_title():
     text = "Sudochad Stud|os presents..."
     for character in text:
         print(character, end = "")
-        #time.sleep(0.125) #sexy but too slow for debugging
-        time.sleep(.03)
+        time.sleep(0.125) #sexy but too slow for debugging
+        #time.sleep(.03)
         sys.stdout.flush()
     time.sleep(.12)
     print("aSDKLFHASDFJK")
@@ -116,7 +117,7 @@ def move_hero(ze_map):
 
     window.addch(int(ze_map.hero[0][0]),int(ze_map.hero[0][1]), '8')
     window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
-
+   
     ze_map.lock.release() # ;)
 
 def move_baddies(ze_map, lock):
