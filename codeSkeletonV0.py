@@ -120,16 +120,15 @@ def display_title():
         sys.stdout.flush()
     time.sleep(.12)
 
-
-def move_hero(ze_map):
+def move_hero_test(ze_map):
 
     ze_map.lock.acquire() # (;
 
     key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    window.addch(int(ze_map.hero[0][0]),int(ze_map.hero[0][1]), ' ')
-    window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
+    window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
+    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
 
     new_hero_head = [ze_map.hero[0][0], ze_map.hero[0][1]]
 
@@ -146,7 +145,44 @@ def move_hero(ze_map):
     ze_map.hero[0] = new_hero_head
     ze_map.hero[1] = [ze_map.hero[0][0] + 1, ze_map.hero[0][1]]
 
-    window.addch(int(ze_map.hero[0][0]),int(ze_map.hero[0][1]), '8')
+    f = open("Playah.txt", "r")
+    playahAnimation = f.read()
+    window.addstr(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), playahAnimation)
+    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '8')
+    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
+   
+    ze_map.lock.release() # ;)
+
+
+def move_hero(ze_map):
+
+    ze_map.lock.acquire() # (;
+
+    key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
+
+    #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
+    #window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
+    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
+
+    new_hero_head = [ze_map.hero[0][0], ze_map.hero[0][1]]
+
+    if key == curses.KEY_DOWN:
+        new_hero_head[0] += 1
+    if key == curses.KEY_UP:
+        new_hero_head[0] -= 1
+    if key == curses.KEY_LEFT:
+        new_hero_head[1] -= 1
+    if key == curses.KEY_RIGHT:
+        new_hero_head[1] += 1
+
+    #update hero pos array
+    ze_map.hero[0] = new_hero_head
+    ze_map.hero[1] = [ze_map.hero[0][0] + 1, ze_map.hero[0][1]]
+
+    #f = open("Playah.txt", "r")
+   # playahAnimation = f.read()
+   # window.addstr(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), playahAnimation)
+    window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '8')
     window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
    
     ze_map.lock.release() # ;)
@@ -154,11 +190,14 @@ def move_hero(ze_map):
 
 def move_baddies(ze_map):
 
+    f = open("Zombie.txt", "r")
+    zombieAnimation = f.read().rstrip()
+
     while(1):
         ze_map.lock.acquire()
 
         #clear
-        window.addstr(int(ze_map.baddies[0][0]), int(ze_map.baddies[0][1]), '  ')
+        #window.addch(int(ze_map.baddies[0][0]), int(ze_map.baddies[0][1]), ' ')
 
         #calculate
         target = [ze_map.hero[0][0],ze_map.hero[0][1]] #hero's "head"
@@ -168,8 +207,10 @@ def move_baddies(ze_map):
         elif ze_map.baddies[0][0] > target[0]:
             ze_map.baddies[0][0] -= 1
 
+
         #place
-        window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), '):')
+        
+        window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), zombieAnimation)
         
         ze_map.lock.release()
         time.sleep(0.5)
@@ -180,6 +221,14 @@ def test_threading(bleh, y):
     print(bleh)
     print(y)
     
+def draw_from_file(x, y, file):
+
+    f = open(file, "r")
+
+    contents = f.read()
+
+    window.addstr(y, x, contents)
+
 
 def main():
 
@@ -187,13 +236,16 @@ def main():
     lock = threading.Lock()
     init_map(ze_map, lock)
     
-    display_intro_message()
+    #display_intro_message()
     
     #display_title()
     
     #baddies_thread = Thread(target=move_baddies,args=ze_map)
+   
     baddies_thread = Thread(target=move_baddies,args=(ze_map,))
     baddies_thread.start()    
+
+    
     
     # bleh = "bnlkasdjf"
     # y = "asd"
@@ -205,10 +257,11 @@ def main():
         # if key == 'p':
         #     quit()
 
-        move_hero(ze_map)
+        move_hero_test(ze_map)
+        window.border(0)
+
         
-        
-    baddies_thread.join()
+   # baddies_thread.join()
     #t1.join()
         
 
