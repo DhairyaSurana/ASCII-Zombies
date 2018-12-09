@@ -179,13 +179,15 @@ def test_threading(bleh, y):
     print("diiiiiicj")
     print(bleh)
     print(y)
+    
 
 def main():
+
     ze_map = ze_map_class()
     lock = threading.Lock()
     init_map(ze_map, lock)
     
-    #display_intro_message()
+    display_intro_message()
     
     #display_title()
     
