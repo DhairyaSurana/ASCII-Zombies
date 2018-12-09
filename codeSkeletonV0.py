@@ -2,12 +2,11 @@ import curses
 import random
 import sys
 import threading
+from threading import Thread
 import time
 
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
-
-# clock = pygame.time.Clock()
 
 ####### <RANDOM THOUGHTS> #######
 
@@ -19,8 +18,6 @@ from pygame.locals import *
 ####### </RANDOM THOUGHTS> ########
 
 
-     
-
 ####### INITILIZATIONZ ###########
 
 s = curses.initscr()
@@ -29,7 +26,6 @@ sh, sw = s.getmaxyx() #TODO CREATE A SET SCREEN SIZE.
 window = curses.newwin(sh, sw, 0, 0)
 window.nodelay(True)    #does this actually work?
 window.keypad(1)    #What does this do?
-
 
 curses.start_color()
 
@@ -45,7 +41,7 @@ window.timeout(100) #and this?
 
 
 class ze_map_class:
-    #self.lock = None     #lock = threading.Lock()
+    lock = threading.Lock()
     hero = [ [0,0],[0,0] ] # change size as needed.
     baddies = [[0,0]]    
 
@@ -89,6 +85,7 @@ def init_map(ze_map, lock):
         [hero_y/2, hero_x/2],
     ] 
 
+
 def display_intro_message():
 
     YELLOW_TEXT = 1
@@ -126,7 +123,7 @@ def display_title():
 
 def move_hero(ze_map):
 
-    #ze_map.lock.acquire() # (;
+    ze_map.lock.acquire() # (;
 
     key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
 
@@ -152,12 +149,13 @@ def move_hero(ze_map):
     window.addch(int(ze_map.hero[0][0]),int(ze_map.hero[0][1]), '8')
     window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
    
-    #ze_map.lock.release() # ;)
+    ze_map.lock.release() # ;)
 
-def move_baddies(ze_map, lock):
+
+def move_baddies(ze_map):
 
     while(1):
-        ze_map.lock.aquire()
+        ze_map.lock.acquire()
 
         #clear
         window.addstr(int(ze_map.baddies[0][0]), int(ze_map.baddies[0][1]), '  ')
@@ -186,17 +184,15 @@ def main():
     ze_map = ze_map_class()
     lock = threading.Lock()
     init_map(ze_map, lock)
-
-
     
-    display_intro_message()
-    
+    #display_intro_message()
     
     #display_title()
-
     
-    #baddies_thread = threading.Thread(target=move_baddies,args=ze_map)
-    #baddies_thread.start()    
+    #baddies_thread = Thread(target=move_baddies,args=ze_map)
+    baddies_thread = Thread(target=move_baddies,args=(ze_map,))
+    baddies_thread.start()    
+    
     # bleh = "bnlkasdjf"
     # y = "asd"
     # t1 = threading.Thread(target=test_threading, args=(bleh,y))
@@ -210,7 +206,7 @@ def main():
         move_hero(ze_map)
         
         
-    #baddies_thread.join()
+    baddies_thread.join()
     #t1.join()
         
 
