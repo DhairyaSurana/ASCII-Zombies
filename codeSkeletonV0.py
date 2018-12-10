@@ -102,8 +102,8 @@ def display_intro_message():
     time.sleep(2)
     dynamic_print(0.05, (sw // 2) - 10, (sh // 2), "              ", RED_TEXT)
 
-
 def display_title():
+
     sys.stdout.flush()
     
     crash_sound = pygame.mixer.Sound("crash.wav")
@@ -154,11 +154,12 @@ def move_hero_test(ze_map):
     ze_map.lock.release() # ;)
 
 
-def move_hero(ze_map):
+def move_hero(ze_map, keypress):
 
     ze_map.lock.acquire() # (;
 
-    key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
+    #key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
+    key = keypress
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
     #window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
@@ -174,6 +175,12 @@ def move_hero(ze_map):
         new_hero_head[1] -= 1
     if key == curses.KEY_RIGHT:
         new_hero_head[1] += 1
+    strong = str(key)
+    if strong == 103:
+        window.addstr(5,4, "bulletType")
+        ze_map.lock.release()
+        fireBullet(ze_map,new_hero_head,0,'•')
+        ze_map.lock.acquire()
 
     #update hero pos array
     ze_map.hero[0] = new_hero_head
@@ -229,6 +236,19 @@ def draw_from_file(x, y, file):
 
     window.addstr(y, x, contents)
 
+def fireBullet(ze_map, bulletOrigin, bulletDirection, bulletType):
+    
+    window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), "bulletType")
+    for i in range(0,10): 
+        ze_map.lock.acquire()
+        
+        window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i-1), ' ')
+        #window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), bulletType)
+        window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), "bulletType")
+        
+        ze_map.lock.release()
+        time.sleep(0.1)
+
 
 def main():
 
@@ -237,33 +257,23 @@ def main():
     init_map(ze_map, lock)
     
     #display_intro_message()
-    
     #display_title()
     
-    #baddies_thread = Thread(target=move_baddies,args=ze_map)
-   
     baddies_thread = Thread(target=move_baddies,args=(ze_map,))
     baddies_thread.start()    
-
     
-    
-    # bleh = "bnlkasdjf"
-    # y = "asd"
-    # t1 = threading.Thread(target=test_threading, args=(bleh,y))
-    # t1.start()
-
     while True: #TODO stop shit from going off screen and breaking the program lol
-        # key = window.getch() 
-        # if key == 'p':
-        #     quit()
+        key = window.getch() 
+        if key == 'p':
+             quit()
+        else:
+            move_hero(ze_map, key)
 
         move_hero_test(ze_map)
         window.border(0)
-
-        
-   # baddies_thread.join()
-    #t1.join()
-        
+    
+    baddies_thread.join()
+    
 
 
 """
