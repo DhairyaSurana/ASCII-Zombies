@@ -272,13 +272,22 @@ def main():
     bullets_thread.daemon = True #exit when main exits
     bullets_thread.start()    
 
+    moveHeroSpriteTag = 1
+
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
         if key == ord('p'): 
             subprocess.Popen("reset")  #TODO fix this
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
+            if moveHeroSpriteTag == 1:
+                ze_map.hero_sprite = ze_map.player.spriteMove1
+            elif moveHeroSpriteTag == 2:
+                ze_map.hero_sprite = ze_map.player.spriteMove2
+                moveHeroSpriteTag = 0
+
             move_hero(ze_map, key)
+            moveHeroSpriteTag+=1
 
         window.border(0)
     
