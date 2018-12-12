@@ -28,6 +28,10 @@ window.nodelay(True)    #does this actually work?
 window.keypad(1)    #What does this do?
 
 curses.start_color()
+curses.noecho()
+
+time_start = time.time()
+last_time_fired = time.time()
 
 #window.addstr((sh // 2) - 5, (sw // 2) - 15, "Sudochad Stud|os presents . . .", curses.color_pair(YELLOW_TEXT))
 
@@ -142,9 +146,11 @@ def clear_sprite(y, x, sprite):
             # for i in (0,str_size):
             #     spaces_str += " "
 
+
 # TODO make sure every action is checked to be in map bounds!!
 def move_hero(ze_map, keypress):
-
+    global last_time_fired
+    
     ze_map.lock.acquire() # (;
     key = keypress
 
@@ -160,18 +166,23 @@ def move_hero(ze_map, keypress):
         new_hero_pos[1] -= 1
     if key == curses.KEY_RIGHT:
         new_hero_pos[1] += 1
-    elif key == ord('d') or key == ord('D'):
-        bullet_info = [new_hero_pos,'right','•']
-        ze_map.bullet_queue.put(bullet_info)
-    elif key == ord('a') or key == ord('A') :
-        bullet_info = [new_hero_pos,'left','•']
-        ze_map.bullet_queue.put(bullet_info)
-    elif key == ord('w') or key == ord('W'):
-        bullet_info = [new_hero_pos,'up','•']
-        ze_map.bullet_queue.put(bullet_info)
-    elif key == ord('s') or key == ord('S')  :
-        bullet_info = [new_hero_pos,'down','•']
-        ze_map.bullet_queue.put(bullet_info)
+
+    if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
+        time_of_key_press = time.time() 
+        if(time_of_key_press > (last_time_fired)+ 0.45):
+            last_time_fired = time.time()
+            if key == ord('d') or key == ord('D'):
+                bullet_info = [new_hero_pos,'right','•']
+                ze_map.bullet_queue.put(bullet_info)
+            elif key == ord('a') or key == ord('A'):
+                bullet_info = [new_hero_pos,'left','•']
+                ze_map.bullet_queue.put(bullet_info)
+            elif key == ord('w') or key == ord('W'):
+                bullet_info = [new_hero_pos,'up','•']
+                ze_map.bullet_queue.put(bullet_info)
+            elif key == ord('s') or key == ord('S'):
+                bullet_info = [new_hero_pos,'down','•']
+                ze_map.bullet_queue.put(bullet_info)
     
 
     #update hero pos array
@@ -219,7 +230,9 @@ def fireBullet(ze_map):
             bullet_origin = bullet_info[0]
             bullet_direction = bullet_info[1] 
             bullet_type = bullet_info[2]           
-            distance = 20 
+            # vert_range = 8 
+            # horiz_range = 20 
+            distance = 20
             for i in range(1,distance):
                 ze_map.lock.acquire()
                 
@@ -253,8 +266,6 @@ def fireBullet(ze_map):
             
             #timerr = threading.Timer()
 
-            
-
 
 def main():
 
@@ -277,6 +288,7 @@ def main():
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
         if key == ord('p'): 
+            curses.endwin()
             subprocess.Popen("reset")  #TODO fix this
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
@@ -295,6 +307,7 @@ def main():
     baddies_thread.join()
     bullets_thread.join()
 
+    curses.endwin()
     subprocess.Popen("reset")  #TODO fix this
 
 
