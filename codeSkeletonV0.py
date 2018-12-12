@@ -41,6 +41,7 @@ window.timeout(100) #and this?
 #the pygame init function was causing a lot of errors 
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
+moveHeroSpriteTag = 1;
 ####### </INITILIZATIONZ> ###########
 
 class struct_for_hero:
@@ -88,7 +89,7 @@ def init_map(ze_map, lock):
     #sets the initial sprite for the player
     ze_map.hero_sprite = ze_map.player.spriteRest 
    
-    ze_map.zombie_sprite_head = '{#_#}'
+    ze_map.zombie_sprite_head = '{##}'
     ze_map.zombie_sprite_body = ' (o)'
 
 
@@ -152,6 +153,9 @@ def move_hero(ze_map, keypress):
     global last_time_fired
     
     ze_map.lock.acquire() # (;
+
+    global moveHeroSpriteTag
+
     key = keypress
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
@@ -184,6 +188,11 @@ def move_hero(ze_map, keypress):
                 bullet_info = [new_hero_pos,'down','•']
                 ze_map.bullet_queue.put(bullet_info)
     
+    if moveHeroSpriteTag == 1:
+        ze_map.hero_sprite = ze_map.player.spriteMove1
+    elif moveHeroSpriteTag == 2:
+        ze_map.hero_sprite = ze_map.player.spriteMove2
+        moveHeroSpriteTag = 0
 
     #update hero pos array
     ze_map.player.row = new_hero_pos[0]
@@ -191,6 +200,7 @@ def move_hero(ze_map, keypress):
 
     place_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
    
+    moveHeroSpriteTag+=1
     ze_map.lock.release() # ;)
 
 
@@ -292,14 +302,8 @@ def main():
             subprocess.Popen("reset")  #TODO fix this
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
-            if moveHeroSpriteTag == 1:
-                ze_map.hero_sprite = ze_map.player.spriteMove1
-            elif moveHeroSpriteTag == 2:
-                ze_map.hero_sprite = ze_map.player.spriteMove2
-                moveHeroSpriteTag = 0
-
             move_hero(ze_map, key)
-            moveHeroSpriteTag+=1
+          
 
         window.border(0)
     
