@@ -120,6 +120,8 @@ def display_title():
         sys.stdout.flush()
     time.sleep(.12)
 
+
+#function that contains new animation for player
 def move_hero_test(ze_map):
 
     ze_map.lock.acquire() # (;
