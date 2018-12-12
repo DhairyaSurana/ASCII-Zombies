@@ -41,21 +41,25 @@ window.timeout(100) #and this?
 #the pygame init function was causing a lot of errors 
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
-moveHeroSpriteTag = 1;
+moveHeroSpriteTag = 1
 ####### </INITILIZATIONZ> ###########
 
 class struct_for_hero:
     col = 0
     row = 0
     spriteRest = "┌(ᶱ1ᶱ)┐"
+
     spriteMove1 = "┌(ᶱ1ᶱ)┘"
+    spriteMoveFired1 = "┌(ᶱ.ᶱ)┘"
+
     spriteMove2 = "└(ᶱ1ᶱ)┐"
+    spriteMoveFired2 = "└(ᶱ.ᶱ)┐"
 
 
 class ze_map_class:
     lock = threading.Lock()
     #hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
-    baddies = [[0,0]]  
+    baddies = [0,0]  
     player = struct_for_hero()  
     hero_sprite = ''
     zombie_sprite = ''
@@ -150,6 +154,7 @@ def clear_sprite(y, x, sprite):
 
 # TODO make sure every action is checked to be in map bounds!!
 def move_hero(ze_map, keypress):
+
     global last_time_fired
     
     ze_map.lock.acquire() # (;
@@ -157,6 +162,8 @@ def move_hero(ze_map, keypress):
     global moveHeroSpriteTag
 
     key = keypress
+
+    bulletFired = False
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
     clear_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
@@ -172,6 +179,7 @@ def move_hero(ze_map, keypress):
         new_hero_pos[1] += 1
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
+        bulletFired = True
         time_of_key_press = time.time() 
         if(time_of_key_press > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
@@ -189,9 +197,19 @@ def move_hero(ze_map, keypress):
                 ze_map.bullet_queue.put(bullet_info)
     
     if moveHeroSpriteTag == 1:
-        ze_map.hero_sprite = ze_map.player.spriteMove1
+        
+        if bulletFired:
+            ze_map.hero_sprite = ze_map.player.spriteMoveFired1
+        else:
+            ze_map.hero_sprite = ze_map.player.spriteMove1
+
     elif moveHeroSpriteTag == 2:
-        ze_map.hero_sprite = ze_map.player.spriteMove2
+
+        if bulletFired:
+            ze_map.hero_sprite = ze_map.player.spriteMoveFired2
+        else:
+            ze_map.hero_sprite = ze_map.player.spriteMove2
+
         moveHeroSpriteTag = 0
 
     #update hero pos array
@@ -210,20 +228,26 @@ def move_baddies(ze_map):
         ze_map.lock.acquire()
 
         #clear
-        window.addstr(int(ze_map.baddies[0][0]+1), int(ze_map.baddies[0][1]), '     ')
-        window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
+        #window.addstr(int(ze_map.baddies[0][0]+1), int(ze_map.baddies[0][1]), '     ')
+        #window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
+
+        clear_sprite(ze_map.baddies[0], ze_map.baddies[1] + 1, ze_map.zombie_sprite_head)
 
         #calculate
         target = [ze_map.player.row, ze_map.player.column] #hero's "head"
         
-        if ze_map.baddies[0][0] < target[0]:
-            ze_map.baddies[0][0] += 1
-        elif ze_map.baddies[0][0] > target[0]:
-            ze_map.baddies[0][0] -= 1
+        if ze_map.baddies[0] < target[0]:
+            ze_map.baddies[0] += 1
+        if ze_map.baddies[0] > target[0]:
+            ze_map.baddies[0] -= 1
+        if ze_map.baddies[1] < target[1]:
+            ze_map.baddies[1] += 1
+        if ze_map.baddies[1] > target[1]:
+            ze_map.baddies[1] -= 1
 
         #place
-        window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]+1), ze_map.zombie_sprite_head)
-        window.addstr(int(ze_map.baddies[0][0]+1),int(ze_map.baddies[0][1]+1), ze_map.zombie_sprite_body)
+        window.addstr(int(ze_map.baddies[0]),int(ze_map.baddies[1]) + 1, ze_map.zombie_sprite_head)
+       # window.addstr(int(ze_map.baddies[0][0]+1),int(ze_map.baddies[0][1]+1), ze_map.zombie_sprite_body)
         
         ze_map.lock.release()
         time.sleep(0.5)
@@ -292,8 +316,6 @@ def main():
     bullets_thread = Thread(target=fireBullet,args=(ze_map,))
     bullets_thread.daemon = True #exit when main exits
     bullets_thread.start()    
-
-    moveHeroSpriteTag = 1
 
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
