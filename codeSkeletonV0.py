@@ -43,7 +43,7 @@ window.timeout(100) #and this?
 #the pygame init function was causing a lot of errors 
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
-moveHeroSpriteTag = 1
+hero_sprite_type = 1
 ####### </INITILIZATIONZ> ###########
 
 class struct_for_hero:
@@ -66,7 +66,8 @@ class ze_map_class:
     hero_sprite = ''
     zombie_sprite = ''
     bullet_queue = queue.Queue()
-    checkerboard = np.zeros((sh,sw),dtype=int) #0 for nothing there, -1 for player, -2 for turret, 1 to inf correspond to zombos
+    checkerboard = np.zeros((sh,sw),dtype=int) 
+    #0 for nothing there, -1 for player, -2 for turret, -10 for walls, 1 to inf correspond to zombos
       
 
 def dynamic_print(timeSpan, x, y, text, color):
@@ -159,7 +160,7 @@ def clear_sprite(y, x, sprite):
 def move_hero(ze_map, keypress):
 
     global last_time_fired
-    global moveHeroSpriteTag
+    global hero_sprite_type
     global hero_func_first_run
     
     ze_map.lock.acquire() # (;
@@ -176,6 +177,7 @@ def move_hero(ze_map, keypress):
         col = int(ze_map.player.col)
         for i in range(0,6):
             if(ze_map.checkerboard[row][col+i] != -1):
+                window.addstr(8,10, "ERROR IN CLEARING HERO")
                 window.addstr(10,10, "hero row" + str(row))
                 window.addstr(12,10, "hero col" + str(col))
             ze_map.checkerboard[row][col+i] = 0
@@ -185,19 +187,21 @@ def move_hero(ze_map, keypress):
 
 
     if key == curses.KEY_DOWN:
-        if ze_map.checkerboard[row+1][col] is 0 or -1 :
+        if ze_map.checkerboard[row+1][col] == 0:
             new_hero_pos[0] += 1
     elif key == curses.KEY_UP:
-        new_hero_pos[0] -= 1
+        if ze_map.checkerboard[row-1][col] == 0:
+            new_hero_pos[0] -= 1
     elif key == curses.KEY_LEFT:
-        new_hero_pos[1] -= 1
+        if ze_map.checkerboard[row][col+1] == 0:
+            new_hero_pos[1] -= 1
     elif key == curses.KEY_RIGHT:
-        new_hero_pos[1] += 1
+        if ze_map.checkerboard[row][col-1] == 0:
+            new_hero_pos[1] += 1
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
-        time_of_key_press = time.time() 
-        if(time_of_key_press > (last_time_fired)+ 0.45):
+        if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
                 bullet_info = [new_hero_pos,'right','•']
@@ -212,38 +216,34 @@ def move_hero(ze_map, keypress):
                 bullet_info = [new_hero_pos,'down','•']
                 ze_map.bullet_queue.put(bullet_info)
     
-    if moveHeroSpriteTag == 1:
-        
+    if hero_sprite_type == 1:
         if bulletFired:
             ze_map.hero_sprite = ze_map.player.spriteMoveFired1
         else:
             ze_map.hero_sprite = ze_map.player.spriteMove1
-
-    elif moveHeroSpriteTag == 2:
-
+    elif hero_sprite_type == 2:
         if bulletFired:
             ze_map.hero_sprite = ze_map.player.spriteMoveFired2
         else:
             ze_map.hero_sprite = ze_map.player.spriteMove2
 
-        moveHeroSpriteTag = 0
+        hero_sprite_type = 0
 
     #update hero pos array
     ze_map.player.row = new_hero_pos[0]
     ze_map.player.col = new_hero_pos[1]
-
     place_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
-
+    #update hero on backend
     row = int(ze_map.player.row)
     col = int(ze_map.player.col)
     for i in range(0,6):
         if(ze_map.checkerboard[row][col+i] != 0):
-            window.addstr(8,10, "hero stepping in bad spot")
+            window.addstr(8,10, "ERROR hero stepping in bad spot")
             window.addstr(10,10, "hero row " + str(row))
             window.addstr(12,10, "hero col " + str(col))
         ze_map.checkerboard[row][col+i] = -1
    
-    moveHeroSpriteTag+=1
+    hero_sprite_type+=1
     ze_map.lock.release() # ;)
 
 
@@ -258,7 +258,6 @@ def move_baddies(ze_map):
 
         clear_sprite(ze_map.baddies[0], ze_map.baddies[1] + 1, ze_map.zombie_sprite_head)
         clear_sprite(ze_map.baddies[0] + 1, ze_map.baddies[1] + 1, ze_map.zombie_sprite_body)
-
 
         #calculate
         target = [ze_map.player.row, ze_map.player.column] #hero's "head"
