@@ -96,7 +96,7 @@ def init_map(ze_map, lock):
     #sets the initial sprite for the player
     ze_map.hero_sprite = ze_map.player.spriteRest 
    
-    ze_map.zombie_sprite_head = '{##}'
+    ze_map.zombie_sprite_head = '{@ 1 @}'
     ze_map.zombie_sprite_body = ' (o)'
 
 
@@ -263,11 +263,12 @@ def move_baddies(ze_map):
         
         if ze_map.baddies[0] < target[0]:
             ze_map.baddies[0] += 1
-        if ze_map.baddies[0] > target[0]:
+        elif ze_map.baddies[0] > target[0]:
             ze_map.baddies[0] -= 1
+
         if ze_map.baddies[1] < target[1]:
             ze_map.baddies[1] += 1
-        if ze_map.baddies[1] > target[1]:
+        elif ze_map.baddies[1] > target[1]:
             ze_map.baddies[1] -= 1
 
         #place
