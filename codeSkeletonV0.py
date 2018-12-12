@@ -8,6 +8,7 @@ import subprocess
 import queue
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
+import numpy as np   #non stl.. $ pip3 install numpy
 
 
 ####### <RANDOM THOUGHTS> #######
@@ -32,6 +33,7 @@ curses.noecho()
 
 time_start = time.time()
 last_time_fired = time.time()
+hero_func_first_run = 1
 
 #window.addstr((sh // 2) - 5, (sw // 2) - 15, "Sudochad Stud|os presents . . .", curses.color_pair(YELLOW_TEXT))
 
@@ -64,6 +66,7 @@ class ze_map_class:
     hero_sprite = ''
     zombie_sprite = ''
     bullet_queue = queue.Queue()
+    checkerboard = np.zeros((sh,sw),dtype=int) #0 for nothing there, -1 for player, -2 for turret, 1 to inf correspond to zombos
       
 
 def dynamic_print(timeSpan, x, y, text, color):
@@ -156,10 +159,10 @@ def clear_sprite(y, x, sprite):
 def move_hero(ze_map, keypress):
 
     global last_time_fired
+    global moveHeroSpriteTag
+    global hero_func_first_run
     
     ze_map.lock.acquire() # (;
-
-    global moveHeroSpriteTag
 
     key = keypress
 
@@ -167,15 +170,28 @@ def move_hero(ze_map, keypress):
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
     clear_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
+    #clear from the map
+    if not hero_func_first_run:
+        row = int(ze_map.player.row)
+        col = int(ze_map.player.col)
+        for i in range(0,6):
+            if(ze_map.checkerboard[row][col+i] != -1):
+                window.addstr(10,10, "hero row" + str(row))
+                window.addstr(12,10, "hero col" + str(col))
+            ze_map.checkerboard[row][col+i] = 0
+    hero_func_first_run = False
+        
     new_hero_pos = [ze_map.player.row, ze_map.player.col]
 
+
     if key == curses.KEY_DOWN:
-        new_hero_pos[0] += 1
-    if key == curses.KEY_UP:
+        if ze_map.checkerboard[row+1][col] is 0 or -1 :
+            new_hero_pos[0] += 1
+    elif key == curses.KEY_UP:
         new_hero_pos[0] -= 1
-    if key == curses.KEY_LEFT:
+    elif key == curses.KEY_LEFT:
         new_hero_pos[1] -= 1
-    if key == curses.KEY_RIGHT:
+    elif key == curses.KEY_RIGHT:
         new_hero_pos[1] += 1
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
@@ -217,6 +233,15 @@ def move_hero(ze_map, keypress):
     ze_map.player.col = new_hero_pos[1]
 
     place_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
+
+    row = int(ze_map.player.row)
+    col = int(ze_map.player.col)
+    for i in range(0,6):
+        if(ze_map.checkerboard[row][col+i] != 0):
+            window.addstr(8,10, "hero stepping in bad spot")
+            window.addstr(10,10, "hero row " + str(row))
+            window.addstr(12,10, "hero col " + str(col))
+        ze_map.checkerboard[row][col+i] = -1
    
     moveHeroSpriteTag+=1
     ze_map.lock.release() # ;)
@@ -284,7 +309,7 @@ def fireBullet(ze_map):
                     place_sprite(bullet_origin[0]+i, bullet_origin[1], bullet_type)
                     
                 ze_map.lock.release()
-                time.sleep(0.05)        
+                time.sleep(0.04)        
             
             ze_map.lock.acquire()
             if(bullet_direction == "right"):
@@ -297,9 +322,6 @@ def fireBullet(ze_map):
                 clear_sprite(bullet_origin[0]+distance-1, bullet_origin[1], ' ')
             ze_map.lock.release()
             
-            
-            #timerr = threading.Timer()
-
 
 def main():
 
@@ -321,7 +343,6 @@ def main():
         key = window.getch() 
         if key == ord('p'): 
             curses.endwin()
-            subprocess.Popen("reset")  #TODO fix this
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
             move_hero(ze_map, key)
@@ -334,7 +355,6 @@ def main():
     bullets_thread.join()
 
     curses.endwin()
-    subprocess.Popen("reset")  #TODO fix this
 
 
 """
