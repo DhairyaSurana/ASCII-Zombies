@@ -4,16 +4,16 @@ import sys
 import threading
 from threading import Thread
 import time
-
+import subprocess
+import queue
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
 
+
 ####### <RANDOM THOUGHTS> #######
 
-# TODO come to a conclusion on how we'll be sharing all the variables..
-# currently shared variables:
-# window
-# map .. lets use a struct!
+#premature optimization is the root of all evil!
+
 
 ####### </RANDOM THOUGHTS> ########
 
@@ -42,22 +42,12 @@ window.timeout(100) #and this?
 
 class ze_map_class:
     lock = threading.Lock()
-    hero = [ [0,0],[0,0] ] # change size as needed.
+    hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
     baddies = [[0,0]]    
-
-    # def __init__(): #tbh idu the syntax and shit here.
-    #     hero_x =  sw / 4
-    #     hero_y =  sh / 2
-
-    #     ze_map.hero = [
-    #     [hero_y, hero_x],
-    #     [hero_y, hero_x-1],
-    #     ] 
-
-    #     baddies = [
-    #     [hero_y/2, hero_x/2],
-    #     ] 
-
+    hero_sprite = ''
+    zombie_sprite = ''
+    bullet_queue = queue.Queue()
+      
 
 def dynamic_print(timeSpan, x, y, text, color):
 
@@ -76,14 +66,18 @@ def init_map(ze_map, lock):
     hero_x =  sw / 4
     hero_y =  sh / 2
 
-    ze_map.hero = [
-        [hero_y, hero_x],
-        [hero_y, hero_x-1],
-    ] 
+    ze_map.hero = [hero_y, hero_x]   
 
     baddies = [
-        [hero_y/2, hero_x/2],
+        [2, 3],
     ] 
+
+    f = open("Playah.txt", "r")
+    ze_map.hero_sprite = f.read()
+    #ff = open("Zombie.txt", "r")
+    #ze_map.zombie_sprite = ff.read().rstrip()
+    ze_map.zombie_sprite_head = '{#_#}'
+    ze_map.zombie_sprite_body = ' (o)'
 
 
 def display_intro_message():
@@ -101,6 +95,7 @@ def display_intro_message():
     dynamic_print(0.5, (sw // 2) - 10, (sh // 2), "ASCII ZOMBIES", RED_TEXT)
     time.sleep(2)
     dynamic_print(0.05, (sw // 2) - 10, (sh // 2), "              ", RED_TEXT)
+
 
 def display_title():
 
@@ -121,7 +116,10 @@ def display_title():
     time.sleep(.12)
 
 
+<<<<<<< HEAD
 #function that contains new animation for player
+=======
+>>>>>>> 53d5c7cd5a824232d7b5f201f466dec685a6afe7
 def move_hero_test(ze_map):
 
     ze_map.lock.acquire() # (;
@@ -132,7 +130,7 @@ def move_hero_test(ze_map):
     window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
     #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
 
-    new_hero_head = [ze_map.hero[0][0], ze_map.hero[0][1]]
+    new_hero_pos = [ze_map.hero[0][0], ze_map.hero[0][1]]
 
     if key == curses.KEY_DOWN:
         new_hero_head[0] += 1
@@ -147,88 +145,85 @@ def move_hero_test(ze_map):
     ze_map.hero[0] = new_hero_head
     ze_map.hero[1] = [ze_map.hero[0][0] + 1, ze_map.hero[0][1]]
 
+    """ these file i/o jazz below be slow and gave me an error!"""
     f = open("Playah.txt", "r")
-    playahAnimation = f.read()
+    playahAnimation = f.read()    
     window.addstr(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), playahAnimation)
     #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '8')
     #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
    
     ze_map.lock.release() # ;)
 
+## should be run inside a locked function body!
+def place_sprite(y, x, sprite):
+    if y < sh and y >= 0:
+        if x < sw and x >= 0:
+            window.addstr(int(y),int(x), sprite)
 
+## should be run inside a locked function body!
+def clear_sprite(y, x, sprite):
+    if y < sh and y >= 0:
+        if x < sw and x >= 0:
+            window.addstr(int(y),int(x), sprite)
+            # str_size = len(sprite)
+            # spaces_str = ""
+            # for i in (0,str_size):
+            #     spaces_str += " "
+
+# TODO make sure every action is checked to be in map bounds!!
 def move_hero(ze_map, keypress):
 
     ze_map.lock.acquire() # (;
-
-    #key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
     key = keypress
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    #window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
-    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
-
-    new_hero_head = [ze_map.hero[0][0], ze_map.hero[0][1]]
+    clear_sprite(ze_map.hero[0],ze_map.hero[1], '     ')
+    new_hero_pos = ze_map.hero
 
     if key == curses.KEY_DOWN:
-        new_hero_head[0] += 1
+        new_hero_pos[0] += 1
     if key == curses.KEY_UP:
-        new_hero_head[0] -= 1
+        new_hero_pos[0] -= 1
     if key == curses.KEY_LEFT:
-        new_hero_head[1] -= 1
+        new_hero_pos[1] -= 1
     if key == curses.KEY_RIGHT:
-        new_hero_head[1] += 1
-    strong = str(key)
-    if strong == 103:
-        window.addstr(5,4, "bulletType")
-        ze_map.lock.release()
-        fireBullet(ze_map,new_hero_head,0,'•')
-        ze_map.lock.acquire()
+        new_hero_pos[1] += 1
+    elif key == ord('a') :
+        bullet_info = [new_hero_pos,'left','•']
+        ze_map.bullet_queue.put(bullet_info)
+        #fireBullet(ze_map,new_hero_pos,0,'•')
 
     #update hero pos array
-    ze_map.hero[0] = new_hero_head
-    ze_map.hero[1] = [ze_map.hero[0][0] + 1, ze_map.hero[0][1]]
-
-    #f = open("Playah.txt", "r")
-   # playahAnimation = f.read()
-   # window.addstr(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), playahAnimation)
-    window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '8')
-    window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
+    ze_map.hero = new_hero_pos
+    place_sprite(ze_map.hero[0], ze_map.hero[1], ze_map.hero_sprite)
    
     ze_map.lock.release() # ;)
 
 
 def move_baddies(ze_map):
 
-    f = open("Zombie.txt", "r")
-    zombieAnimation = f.read().rstrip()
-
     while(1):
         ze_map.lock.acquire()
 
         #clear
-        #window.addch(int(ze_map.baddies[0][0]), int(ze_map.baddies[0][1]), ' ')
+        window.addstr(int(ze_map.baddies[0][0]+1), int(ze_map.baddies[0][1]), '     ')
+        window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
 
         #calculate
-        target = [ze_map.hero[0][0],ze_map.hero[0][1]] #hero's "head"
+        target = [ze_map.hero[0],ze_map.hero[1]] #hero's "head"
         
         if ze_map.baddies[0][0] < target[0]:
             ze_map.baddies[0][0] += 1
         elif ze_map.baddies[0][0] > target[0]:
             ze_map.baddies[0][0] -= 1
 
-
         #place
-        
-        window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]), zombieAnimation)
+        window.addstr(int(ze_map.baddies[0][0]),int(ze_map.baddies[0][1]+1), ze_map.zombie_sprite_head)
+        window.addstr(int(ze_map.baddies[0][0]+1),int(ze_map.baddies[0][1]+1), ze_map.zombie_sprite_body)
         
         ze_map.lock.release()
         time.sleep(0.5)
 
-def test_threading(bleh, y):
-    time.sleep(5)
-    print("diiiiiicj")
-    print(bleh)
-    print(y)
     
 def draw_from_file(x, y, file):
 
@@ -238,18 +233,37 @@ def draw_from_file(x, y, file):
 
     window.addstr(y, x, contents)
 
-def fireBullet(ze_map, bulletOrigin, bulletDirection, bulletType):
-    
-    window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), "bulletType")
-    for i in range(0,10): 
-        ze_map.lock.acquire()
+
+def fireBullet(ze_map): 
+    while 1:
+        bullet_info = None
+        try:
+            bullet_info = ze_map.bullet_queue.get_nowait() #this should be fine to do before lock.aquire() ..even though it's odd.
+        except:
+            pass
+        if bullet_info is not None:
+            bullet_origin = bullet_info[0]
+            bullet_direction = bullet_info[1] 
+            bullet_type = bullet_info[2]           
+            for i in range(1,20):
+                ze_map.lock.acquire()
+                clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
+                place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
+                ze_map.lock.release()
+                time.sleep(0.05)        
+
+
+
+    # window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]), bulletType)
+    # for i in range(1,10): 
+    #     ze_map.lock.acquire()
         
-        window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i-1), ' ')
-        #window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), bulletType)
-        window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), "bulletType")
-        
-        ze_map.lock.release()
-        time.sleep(0.1)
+    #     #window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i-1), ' ')
+    #     window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), bulletType)
+    #     #print (i)
+
+    #     ze_map.lock.release()
+    #     time.sleep(0.1)
 
 
 def main():
@@ -262,20 +276,27 @@ def main():
     #display_title()
     
     baddies_thread = Thread(target=move_baddies,args=(ze_map,))
+    baddies_thread.daemon = True #exit when main exits
     baddies_thread.start()    
-    
+    bullets_thread = Thread(target=fireBullet,args=(ze_map,))
+    bullets_thread.daemon = True #exit when main exits
+    bullets_thread.start()    
+
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
-        if key == 'p':
-             quit()
+        if key == ord('p'): 
+            subprocess.Popen("reset")  #TODO fix this
+            quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
             move_hero(ze_map, key)
 
-        move_hero_test(ze_map)
         window.border(0)
     
+    ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
-    
+    bullet_thread.join()
+
+    subprocess.Popen("reset")  #TODO fix this
 
 
 """
