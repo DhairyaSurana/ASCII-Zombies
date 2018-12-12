@@ -49,6 +49,9 @@ hero_sprite_type = 1
 class struct_for_hero:
     col = 0
     row = 0
+    health = 10
+
+
     spriteRest = "┌(ᶱ1ᶱ)┐"
 
     spriteMove1 = "┌(ᶱ1ᶱ)┘"
@@ -58,11 +61,19 @@ class struct_for_hero:
     spriteMoveFired2 = "└(ᶱ.ᶱ)┐"
 
 
+class struct_for_baddies:
+    col = 0
+    row = 0
+
+    zombie_sprite_head = '{#_#}'
+    zombie_sprite_body = ' (o)'
+
 class ze_map_class:
     lock = threading.Lock()
     #hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
     baddies = [0,0]  
     player = struct_for_hero()  
+    baddy = struct_for_baddies()
     hero_sprite = ''
     zombie_sprite = ''
     bullet_queue = queue.Queue()
@@ -80,6 +91,9 @@ def dynamic_print(timeSpan, x, y, text, color):
         time.sleep(timeSpan)
         tempX+=1
 
+def drawHealthBar(x, y, health):
+
+    window.addStr(y, x, "=" * health)
 
 def init_map(ze_map, lock):
     ze_map.lock = lock
@@ -96,9 +110,6 @@ def init_map(ze_map, lock):
 
     #sets the initial sprite for the player
     ze_map.hero_sprite = ze_map.player.spriteRest 
-   
-    ze_map.zombie_sprite_head = '{#_#}'
-    ze_map.zombie_sprite_body = ' (o)'
 
 
 def display_intro_message():
@@ -256,25 +267,25 @@ def move_baddies(ze_map):
         #window.addstr(int(ze_map.baddies[0][0]+1), int(ze_map.baddies[0][1]), '     ')
         #window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
 
-        clear_sprite(ze_map.baddies[0], ze_map.baddies[1] + 1, ze_map.zombie_sprite_head)
-        clear_sprite(ze_map.baddies[0] + 1, ze_map.baddies[1] + 1, ze_map.zombie_sprite_body)
+        clear_sprite(ze_map.baddy.row, ze_map.baddy.col + 1, ze_map.baddy.zombie_sprite_head)
+        clear_sprite(ze_map.baddy.row + 1, ze_map.baddy.col + 1, ze_map.baddy.zombie_sprite_body)
 
         #calculate
         target = [ze_map.player.row, ze_map.player.column] #hero's "head"
         
-        if ze_map.baddies[0] < target[0]:
-            ze_map.baddies[0] += 1
-        elif ze_map.baddies[0] > target[0]:
-            ze_map.baddies[0] -= 1
+        if ze_map.baddy.row < target[0]:
+            ze_map.baddy.row += 1
+        elif ze_map.baddy.row > target[0]:
+            ze_map.baddy.row -= 1
 
-        if ze_map.baddies[1] < target[1]:
-            ze_map.baddies[1] += 1
-        elif ze_map.baddies[1] > target[1]:
-            ze_map.baddies[1] -= 1
+        if ze_map.baddy.col < target[1]:
+            ze_map.baddy.col += 1
+        elif ze_map.baddy.col > target[1]:
+            ze_map.baddy.col -= 1
 
         #place
-        window.addstr(int(ze_map.baddies[0]),int(ze_map.baddies[1]) + 1, ze_map.zombie_sprite_head)
-        window.addstr(int(ze_map.baddies[0]+1),int(ze_map.baddies[1]+1), ze_map.zombie_sprite_body)
+        window.addstr(int(ze_map.baddy.row),int(ze_map.baddy.col) + 1, ze_map.baddy.zombie_sprite_head)
+        window.addstr(int(ze_map.baddy.row+1),int(ze_map.baddy.col+1), ze_map.baddy.zombie_sprite_body)
         
         ze_map.lock.release()
         time.sleep(0.5)
