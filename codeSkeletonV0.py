@@ -116,44 +116,6 @@ def display_title():
     time.sleep(.12)
 
 
-<<<<<<< HEAD
-#function that contains new animation for player
-=======
->>>>>>> 53d5c7cd5a824232d7b5f201f466dec685a6afe7
-def move_hero_test(ze_map):
-
-    ze_map.lock.acquire() # (;
-
-    key = window.getch()   #TODO figure out how to grab 2 keys at once for moving and shooting, etc..
-
-    #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    window.addstr(int(ze_map.hero[0][0]),int(ze_map.hero[1][1]), "     ")
-    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), ' ')
-
-    new_hero_pos = [ze_map.hero[0][0], ze_map.hero[0][1]]
-
-    if key == curses.KEY_DOWN:
-        new_hero_head[0] += 1
-    if key == curses.KEY_UP:
-        new_hero_head[0] -= 1
-    if key == curses.KEY_LEFT:
-        new_hero_head[1] -= 1
-    if key == curses.KEY_RIGHT:
-        new_hero_head[1] += 1
-
-    #update hero pos array
-    ze_map.hero[0] = new_hero_head
-    ze_map.hero[1] = [ze_map.hero[0][0] + 1, ze_map.hero[0][1]]
-
-    """ these file i/o jazz below be slow and gave me an error!"""
-    f = open("Playah.txt", "r")
-    playahAnimation = f.read()    
-    window.addstr(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), playahAnimation)
-    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '8')
-    #window.addch(int(ze_map.hero[1][0]),int(ze_map.hero[1][1]), '0')
-   
-    ze_map.lock.release() # ;)
-
 ## should be run inside a locked function body!
 def place_sprite(y, x, sprite):
     if y < sh and y >= 0:
@@ -224,15 +186,6 @@ def move_baddies(ze_map):
         ze_map.lock.release()
         time.sleep(0.5)
 
-    
-def draw_from_file(x, y, file):
-
-    f = open(file, "r")
-
-    contents = f.read()
-
-    window.addstr(y, x, contents)
-
 
 def fireBullet(ze_map): 
     while 1:
@@ -294,7 +247,7 @@ def main():
     
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
-    bullet_thread.join()
+    bullets_thread.join()
 
     subprocess.Popen("reset")  #TODO fix this
 
