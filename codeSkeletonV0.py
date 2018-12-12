@@ -42,16 +42,16 @@ window.timeout(100) #and this?
 class struct_for_hero:
     col = 0
     row = 0
-    sprite0 = "┌(ᶱ1ᶱ)┐"
-    sprite1 = "┌(ᶱ1ᶱ)┘"
-    sprite2 = "└(ᶱ1ᶱ)┐"
+    spriteRest = "┌(ᶱ1ᶱ)┐"
+    spriteMove1 = "┌(ᶱ1ᶱ)┘"
+    spriteMove2 = "└(ᶱ1ᶱ)┐"
 
 
 class ze_map_class:
     lock = threading.Lock()
-    hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
+    #hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
     baddies = [[0,0]]  
-    struct_for_hero player  
+    player = struct_for_hero()  
     hero_sprite = ''
     zombie_sprite = ''
     bullet_queue = queue.Queue()
@@ -74,16 +74,16 @@ def init_map(ze_map, lock):
     hero_x =  sw / 4
     hero_y =  sh / 2
 
-    ze_map.hero = [hero_y, hero_x]   
+    ze_map.player.row = hero_y
+    ze_map.player.column =  hero_x
 
     baddies = [
         [2, 3],
     ] 
 
-    f = open("Playah.txt", "r")
-    ze_map.hero_sprite = "┌(ᶱ1ᶱ)┐"
-    #ff = open("Zombie.txt", "r")
-    #ze_map.zombie_sprite = ff.read().rstrip()
+    #sets the initial sprite for the player
+    ze_map.hero_sprite = ze_map.player.spriteRest 
+   
     ze_map.zombie_sprite_head = '{#_#}'
     ze_map.zombie_sprite_body = ' (o)'
 
@@ -132,9 +132,11 @@ def place_sprite(y, x, sprite):
 
 ## should be run inside a locked function body!
 def clear_sprite(y, x, sprite):
+
+    space = " " * len(sprite)
     if y < sh and y >= 0:
         if x < sw and x >= 0:
-            window.addstr(int(y),int(x), sprite)
+            window.addstr(int(y),int(x), space)
             # str_size = len(sprite)
             # spaces_str = ""
             # for i in (0,str_size):
@@ -147,14 +149,13 @@ def move_hero(ze_map, keypress):
     key = keypress
 
     #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    clear_sprite(ze_map.hero[0],ze_map.hero[1], '     ')
-    new_hero_pos = ze_map.hero
+    clear_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
+    new_hero_pos = [ze_map.player.row, ze_map.player.col]
 
     if key == curses.KEY_DOWN:
         new_hero_pos[0] += 1
     if key == curses.KEY_UP:
         new_hero_pos[0] -= 1
-
     if key == curses.KEY_LEFT:
         new_hero_pos[1] -= 1
     if key == curses.KEY_RIGHT:
@@ -174,8 +175,10 @@ def move_hero(ze_map, keypress):
     
 
     #update hero pos array
-    ze_map.hero = new_hero_pos
-    place_sprite(ze_map.hero[0], ze_map.hero[1], ze_map.hero_sprite)
+    ze_map.player.row = new_hero_pos[0]
+    ze_map.player.col = new_hero_pos[1]
+
+    place_sprite(ze_map.player.row, ze_map.player.col, ze_map.hero_sprite)
    
     ze_map.lock.release() # ;)
 
@@ -190,7 +193,7 @@ def move_baddies(ze_map):
         window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
 
         #calculate
-        target = [ze_map.hero[0],ze_map.hero[1]] #hero's "head"
+        target = [ze_map.player.row, ze_map.player.column] #hero's "head"
         
         if ze_map.baddies[0][0] < target[0]:
             ze_map.baddies[0][0] += 1
