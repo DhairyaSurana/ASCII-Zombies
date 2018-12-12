@@ -157,10 +157,19 @@ def move_hero(ze_map, keypress):
         new_hero_pos[1] -= 1
     if key == curses.KEY_RIGHT:
         new_hero_pos[1] += 1
-    elif key == ord('a') :
+    elif key == ord('d') or key == ord('D'):
+        bullet_info = [new_hero_pos,'right','•']
+        ze_map.bullet_queue.put(bullet_info)
+    elif key == ord('a') or key == ord('A') :
         bullet_info = [new_hero_pos,'left','•']
         ze_map.bullet_queue.put(bullet_info)
-        #fireBullet(ze_map,new_hero_pos,0,'•')
+    elif key == ord('w') or key == ord('W'):
+        bullet_info = [new_hero_pos,'up','•']
+        ze_map.bullet_queue.put(bullet_info)
+    elif key == ord('s') or key == ord('S')  :
+        bullet_info = [new_hero_pos,'down','•']
+        ze_map.bullet_queue.put(bullet_info)
+    
 
     #update hero pos array
     ze_map.hero = new_hero_pos
@@ -205,13 +214,41 @@ def fireBullet(ze_map):
             bullet_origin = bullet_info[0]
             bullet_direction = bullet_info[1] 
             bullet_type = bullet_info[2]           
-            for i in range(1,20):
+            distance = 20 
+            for i in range(1,distance):
                 ze_map.lock.acquire()
-                clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-                place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
+                
+                if(bullet_direction == "right"):
+                    clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
+                    place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
+                elif(bullet_direction == "left"):
+                    clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
+                    place_sprite(bullet_origin[0], bullet_origin[1]-i, bullet_type)
+                elif(bullet_direction == "up"):
+                    clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
+                    place_sprite(bullet_origin[0]-i, bullet_origin[1], bullet_type)
+                elif(bullet_direction == "down"):
+                    clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
+                    place_sprite(bullet_origin[0]+i, bullet_origin[1], bullet_type)
+                    
                 ze_map.lock.release()
                 time.sleep(0.05)        
+            
+            ze_map.lock.acquire()
+            if(bullet_direction == "right"):
+                clear_sprite(bullet_origin[0], bullet_origin[1]+distance-1, ' ')
+            elif(bullet_direction == "left"):
+                clear_sprite(bullet_origin[0], bullet_origin[1]-distance+1, ' ')
+            elif(bullet_direction == "up"):
+                clear_sprite(bullet_origin[0]-distance+1, bullet_origin[1], ' ')
+            elif(bullet_direction == "down"):
+                clear_sprite(bullet_origin[0]+distance-1, bullet_origin[1], ' ')
+            ze_map.lock.release()
+            
+            
+            #timerr = threading.Timer()
 
+            
 
 
 def main():
