@@ -39,6 +39,13 @@ window.timeout(100) #and this?
 
 ####### </INITILIZATIONZ> ###########
 
+class struct_for_hero:
+    col = 0
+    row = 0
+    sprite0 = "‛{X}’"
+    sprite1 = ",{X}’"
+    sprite2 = "‛{X},"
+
 
 class ze_map_class:
     lock = threading.Lock()
@@ -205,18 +212,6 @@ def fireBullet(ze_map):
                 ze_map.lock.release()
                 time.sleep(0.05)        
 
-
-
-    # window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]), bulletType)
-    # for i in range(1,10): 
-    #     ze_map.lock.acquire()
-        
-    #     #window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i-1), ' ')
-    #     window.addstr(int(bulletOrigin[0]),int(bulletOrigin[0]+i), bulletType)
-    #     #print (i)
-
-    #     ze_map.lock.release()
-    #     time.sleep(0.1)
 
 
 def main():
