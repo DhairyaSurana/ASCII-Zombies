@@ -34,6 +34,7 @@ curses.noecho()
 time_start = time.time()
 last_time_fired = time.time()
 hero_func_first_run = 1
+zomb_func_first_run = 1
 
 #window.addstr((sh // 2) - 5, (sw // 2) - 15, "Sudochad Stud|os presents . . .", curses.color_pair(YELLOW_TEXT))
 
@@ -46,11 +47,31 @@ window.timeout(100) #and this?
 hero_sprite_type = 1
 ####### </INITILIZATIONZ> ###########
 
-class struct_for_hero:
+class struct_for_turret:
     col = 0
     row = 0
     health = 10
 
+    facing_up_ln1 =   "++||++"
+    facing_up_ln2 =   "+ [] +"
+    facing_up_ln3 =   "++++++"
+    
+    facing_down_ln1 = "++++++"
+    facing_down_ln2 = "+ [] +"
+    facing_down_ln3 = "++||++"
+    
+    facing_right_ln1 = "++++++"
+    facing_right_ln2 = "+ I==="
+    facing_right_ln3 = "++++++"
+
+    facing_left_ln1 = "++++++"
+    facing_left_ln2 = "===I +"
+    facing_left_ln3 = "++++++"
+
+class struct_for_hero:
+    col = 0
+    row = 0
+    health = 10
 
     spriteRest = "┌(ᶱ1ᶱ)┐"
 
@@ -65,8 +86,12 @@ class struct_for_baddies:
     col = 0
     row = 0
 
+    zombie_sprite_left_attack_head ='~{#_#}'
+    zombie_sprite_right_attack_head ='{#_#}~' #TODO make bodies too and implement
+    
     zombie_sprite_head = '{#_#}'
     zombie_sprite_body = ' (o)'
+
 
 class ze_map_class:
     lock = threading.Lock()
@@ -259,37 +284,103 @@ def move_hero(ze_map, keypress):
 
 
 def move_baddies(ze_map):
-
+    global zomb_func_first_run
     while(1):
         ze_map.lock.acquire()
 
-        #clear
-        #window.addstr(int(ze_map.baddies[0][0]+1), int(ze_map.baddies[0][1]), '     ')
-        #window.addstr(int(ze_map.baddies[0][0]+2), int(ze_map.baddies[0][1]+1), '   ')
+    # zombie_sprite_head = '{#_#}'
+    # zombie_sprite_body = ' (o)'
 
         clear_sprite(ze_map.baddy.row, ze_map.baddy.col + 1, ze_map.baddy.zombie_sprite_head)
         clear_sprite(ze_map.baddy.row + 1, ze_map.baddy.col + 1, ze_map.baddy.zombie_sprite_body)
+        row = int(ze_map.baddy.row)
+        col = int(ze_map.baddy.col)
+        if(zomb_func_first_run == 0):
+            for i in range(0,4):
+                if(ze_map.checkerboard[row][col+i] != 1):
+                    window.addstr(8,10, "ERROR zomb stepping in bad spot")
+                    window.addstr(10,10, "zomb row " + str(row))
+                    window.addstr(12,10, "zomb col " + str(col))
+                ze_map.checkerboard[row][col+i] = 0
+            
+            for i in range(1,3):
+                if(ze_map.checkerboard[row+1][col+i] != 1):
+                    window.addstr(8,10, "ERROR zomb stepping in bad spot")
+                    window.addstr(10,10, "zomb row " + str(row))
+                    window.addstr(12,10, "zomb col " + str(col))
+                ze_map.checkerboard[row+1][col+i] = 0
+        zomb_func_first_run = 0
 
         #calculate
         target = [ze_map.player.row, ze_map.player.column] #hero's "head"
         
         if ze_map.baddy.row < target[0]:
-            ze_map.baddy.row += 1
+            if ze_map.checkerboard[row+2][col] == 0:
+                ze_map.baddy.row += 1
         elif ze_map.baddy.row > target[0]:
-            ze_map.baddy.row -= 1
+            if ze_map.checkerboard[row-1][col] == 0:
+                ze_map.baddy.row -= 1
 
         if ze_map.baddy.col < target[1]:
-            ze_map.baddy.col += 1
+            if ze_map.checkerboard[row][col+1] == 0:
+                ze_map.baddy.col += 1
         elif ze_map.baddy.col > target[1]:
-            ze_map.baddy.col -= 1
+            if ze_map.checkerboard[row][col-1] == 0:
+                ze_map.baddy.col -= 1
+
+        # if ze_map.baddy.row < target[0]:
+        #     if ze_map.checkerboard[row+1][col] == 0:
+        #         ze_map.baddy.row += 1
+        # elif ze_map.baddy.row > target[0]:
+        #     ze_map.baddy.row -= 1
+
+        # if ze_map.baddy.col < target[1]:
+        #     ze_map.baddy.col += 1
+        # elif ze_map.baddy.col > target[1]:
+        #     ze_map.baddy.col -= 1
 
         #place
         window.addstr(int(ze_map.baddy.row),int(ze_map.baddy.col) + 1, ze_map.baddy.zombie_sprite_head)
         window.addstr(int(ze_map.baddy.row+1),int(ze_map.baddy.col+1), ze_map.baddy.zombie_sprite_body)
+        row = int(ze_map.baddy.row)
+        col = int(ze_map.baddy.col)
+        for i in range(0,4):
+            if(ze_map.checkerboard[row][col+i] != 0):
+                window.addstr(8,10, "ERROR zomb stepping in bad spot2")
+                window.addstr(10,10, "zomb row " + str(row))
+                window.addstr(12,10, "zomb col " + str(col))
+            ze_map.checkerboard[row][col+i] = 1
         
+        for i in range(1,3):
+            if(ze_map.checkerboard[row+1][col+i] != 0):
+                window.addstr(8,10, "ERROR zomb stepping in bad spot2")
+                window.addstr(10,10, "zomb row " + str(row))
+                window.addstr(12,10, "zomb col " + str(col))
+            ze_map.checkerboard[row+1][col+i] = 1
+
+
+
         ze_map.lock.release()
         time.sleep(0.5)
 
+
+def auto_turret(ze_map):
+    turret = "++||++"
+    turret = "+ [] +"
+    turret = "++++++"
+    
+    turret = "++++++"
+    turret = "+ [] +"
+    turret = "++||++"
+    
+    turret = "++++++"
+    turret = "+ I==="
+    turret = "++++++"
+
+    turret = "++++++"
+    turret = "===I +"
+    turret = "++++++"
+ 
 
 def fireBullet(ze_map): 
     while 1:
@@ -356,6 +447,7 @@ def main():
         key = window.getch() 
         if key == ord('p'): 
             curses.endwin()
+            subprocess.call(["reset"])
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
             move_hero(ze_map, key)
@@ -368,8 +460,7 @@ def main():
     bullets_thread.join()
 
     curses.endwin()
-
-
+    subprocess.call(["reset"])
 """
 
  ◖========8 ############################## leggo baby. ################################ 8========D
