@@ -42,15 +42,16 @@ window.timeout(100) #and this?
 class struct_for_hero:
     col = 0
     row = 0
-    sprite0 = "‛{X}’"
-    sprite1 = ",{X}’"
-    sprite2 = "‛{X},"
+    sprite0 = "┌(ᶱ1ᶱ)┐"
+    sprite1 = "┌(ᶱ1ᶱ)┘"
+    sprite2 = "└(ᶱ1ᶱ)┐"
 
 
 class ze_map_class:
     lock = threading.Lock()
     hero = [0,0] # TODO MAKE HERO AND SHIT A CLASS WITH ROW, COL, AND STRINGS FOR ANIMATIONS!!!
-    baddies = [[0,0]]    
+    baddies = [[0,0]]  
+    struct_for_hero player  
     hero_sprite = ''
     zombie_sprite = ''
     bullet_queue = queue.Queue()
@@ -80,7 +81,7 @@ def init_map(ze_map, lock):
     ] 
 
     f = open("Playah.txt", "r")
-    ze_map.hero_sprite = f.read()
+    ze_map.hero_sprite = "┌(ᶱ1ᶱ)┐"
     #ff = open("Zombie.txt", "r")
     #ze_map.zombie_sprite = ff.read().rstrip()
     ze_map.zombie_sprite_head = '{#_#}'
@@ -153,6 +154,7 @@ def move_hero(ze_map, keypress):
         new_hero_pos[0] += 1
     if key == curses.KEY_UP:
         new_hero_pos[0] -= 1
+
     if key == curses.KEY_LEFT:
         new_hero_pos[1] -= 1
     if key == curses.KEY_RIGHT:
