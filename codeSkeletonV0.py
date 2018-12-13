@@ -483,11 +483,31 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         #wipe
         for i in range(0,env.player.len_of_sprite):
             env.checkerboard[oldrow][oldcol+i] = 0
-            window.addch(oldrow, newrow, ' ')
-        #window.addstr(8,10, "ERROR zomb stepping in bad spot")
-        
-        
+            window.addch(oldrow, oldrow + i, ' ')
+        #place
+        for i in range(0,env.player.len_of_sprite):
+            env.checkerboard[newrow][newcol+i] = 0
+            window.addch(newrow, newrow + i, ' ')
+        #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
+    return True
 
+    # TODO change baddy to specific zombie
+    if(character_ID >= 1):
+        #check
+        for i in range(0,env.baddy.len_of_row0):
+            if(env.checkerboard[newrow][newcol+i] != 0 and 
+            env.checkerboard[newrow][newcol+i] != character_ID):
+                return False
+        
+        offset = env.baddy.offset_of_row1
+        for i in range(0,env.baddy.len_of_row1):
+            if(env.checkerboard[newrow+1][newcol+i+offset] != 0 and 
+            env.checkerboard[newrow+1][newcol+i+offset] != character_ID ):
+                return False
+        #wipe
+        # for i in range(0,env.baddy.len_of_row0):
+        #     env.checkerboard[oldrow][oldcol+i] = 0
+        #     window.addch(oldrow, oldrow + i, ' ')
                 
 
 
