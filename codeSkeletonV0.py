@@ -483,11 +483,12 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         #wipe
         for i in range(0,env.player.len_of_sprite):
             env.checkerboard[oldrow][oldcol+i] = 0
-            window.addch(oldrow, oldrow + i, ' ')
+            window.addch(oldrow, oldcol + i, ' ')
         #place
         for i in range(0,env.player.len_of_sprite):
             env.checkerboard[newrow][newcol+i] = 0
-            window.addch(newrow, newrow + i, ' ')
+            #TODO add hero sprite changing here
+            window.addch(newrow, newrow + i, env.player.spriteRest[i])
         #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
     return True
 
@@ -505,9 +506,15 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
             env.checkerboard[newrow+1][newcol+i+offset] != character_ID ):
                 return False
         #wipe
+        for i in range(0,env.baddy.len_of_row0):
+            env.checkerboard[oldrow][oldcol+i] = 0
+            window.addch(oldrow, oldcol + i, ' ')
+        
         # for i in range(0,env.baddy.len_of_row0):
         #     env.checkerboard[oldrow][oldcol+i] = 0
-        #     window.addch(oldrow, oldrow + i, ' ')
+        #     window.addch(oldrow, oldcol + i, ' ')
+
+
                 
 
 
