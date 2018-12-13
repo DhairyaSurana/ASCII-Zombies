@@ -25,8 +25,13 @@ s = curses.initscr()
 curses.curs_set(0)
 sh, sw = s.getmaxyx() #TODO CREATE A SET SCREEN SIZE.
 window = curses.newwin(sh, sw, 0, 0)
+barWindow = curses.newwin(sh//4, sw//4, 5, 5)
+
 window.nodelay(True)    #does this actually work?
+barWindow.nodelay(True)
+
 window.keypad(1)    #What does this do?
+barWindow.keypad(1)
 
 curses.start_color()
 curses.noecho()
@@ -35,8 +40,6 @@ time_start = time.time()
 last_time_fired = time.time()
 hero_func_first_run = 1
 zomb_func_first_run = 1
-
-#window.addstr((sh // 2) - 5, (sw // 2) - 15, "Sudochad Stud|os presents . . .", curses.color_pair(YELLOW_TEXT))
 
 window.border(0)
 window.timeout(100) #and this?
@@ -72,6 +75,7 @@ class struct_for_hero:
     col = 0
     row = 0
     health = 10
+    points = 0
 
     spriteRest = "┌(ᶱ1ᶱ)┐"
 
@@ -464,6 +468,7 @@ def main():
     init_map(ze_map, lock)
     
     
+    
     #display_intro_message()
     
     baddies_thread = Thread(target=move_baddies,args=(ze_map,))
@@ -484,8 +489,11 @@ def main():
           
 
         window.border(0)
-        drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), 6)
-        drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), 6)
+      
+
+        drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), ze_map.player.health)
+        drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), ze_map.player.points)
+
     
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
