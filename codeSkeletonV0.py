@@ -50,7 +50,8 @@ window.timeout(100) #and this?
 
 hero_sprite_type = 1
 old_health = 10
-#old_bar = "❤" * old_health
+old_points = 10
+#old_health_bar = "❤" * old_health
 ####### </INITILIZATIONZ> ###########
 
 class turret:
@@ -79,7 +80,7 @@ class hero:
     col = 0
     row = 0
     health = 10
-    points = 0
+    points = 10
 
     spriteRest = "┌(ᶱ1ᶱ)┐"
 
@@ -136,12 +137,12 @@ def boundError(x, y):
 def drawHealthBar(x, y, health):
 
     global old_health
-    #global old_bar
+    #global old_health_bar
 
     if(health != old_health):
 
-        old_bar = "❤ " * old_health
-        clear_sprite(y, x + 8, old_bar)
+        old_health_bar = "❤ " * old_health
+        clear_sprite(y, x + 8, old_health_bar)
         old_health = health
 
     if(not boundError(x, y)):
@@ -153,10 +154,18 @@ def drawHealthBar(x, y, health):
         curses.init_pair(RED_TEXT, curses.COLOR_RED, curses.COLOR_BLACK)
 
         bar = "❤ " * health
-          #  old_bar = bar
+          #  old_health_bar = bar
         window.addstr(y, x + 8, bar, curses.color_pair(RED_TEXT))
 
 def drawPointBar(x, y, points):
+
+    global old_points
+
+    if(points != old_points):
+
+        old_points_bar = "$ " * old_points
+        clear_sprite(y, x + 8, old_points_bar)
+        old_points = points
 
     if(not boundError(x, y)):
         window.addstr(y, x, "Points: ", curses.A_BOLD)
@@ -274,7 +283,8 @@ def move_hero(env, keypress):
         if placement_is_valid(row + 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[0] += 1
     elif key == curses.KEY_UP:
-        env.player.health+=1 #For testing purposes, remove once done
+        if(env.player.health !=  10):#For testing purposes, remove once done
+            env.player.health+=1 #For testing purposes, remove once done
         if placement_is_valid(row - 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[0] -= 1
     elif key == curses.KEY_LEFT:
@@ -302,6 +312,18 @@ def move_hero(env, keypress):
                 bullet_info = [new_hero_pos,'down','•']
                 env.bullet_queue.put(bullet_info)
     
+    if env.player.points == 10:
+        window.addstr((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret", curses.A_BLINK)
+
+        if key == ord('e'):
+            clear_sprite((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret")
+            place_turret(int(env.player.row), int(env.player.col) + 5, env)
+            env.player.points = 0
+
+    elif env.player.points != 10:
+        if key == ord('i'):
+            env.player.points+=1
+        
     if hero_sprite_type == 1:
         if bulletFired:
             env.hero_sprite = env.player.spriteMoveFired1
@@ -533,7 +555,7 @@ def main():
         drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), env.player.health)
         drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), env.player.points)
 
-        place_turret((sw // 2) - ((sw // 2) - 10), (sh // 2) - ((sh // 2) - 10), env)
+        
 
     
     ## DONT FORGET TO JOIN THY THREADS!
