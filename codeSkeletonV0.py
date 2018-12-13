@@ -53,7 +53,8 @@ old_health = 10
 #old_bar = "❤" * old_health
 ####### </INITILIZATIONZ> ###########
 
-class struct_for_turret:
+class turret:
+
     col = 0
     row = 0
     health = 10
@@ -108,6 +109,7 @@ class environment:
     baddy = zombie()
     hero_sprite = ''
     zombie_sprite = ''
+    playerTurret = turret()
     bullet_queue = queue.Queue()
     checkerboard = np.zeros((sh,sw),dtype=int) 
     #0 for nothing there, -1 for player, -2 for turret, -10 for walls, 1 to inf correspond to zombos
@@ -408,6 +410,7 @@ def move_baddies(env):
         time.sleep(0.5)
 
 
+#This function is currently gay
 def auto_turret(env):
 
     turret = "++||++"
@@ -426,6 +429,15 @@ def auto_turret(env):
     turret = "===I +"
     turret = "++++++"
  
+def place_turret(x, y, env):
+
+    if(not boundError(x, y)):
+
+        window.addstr(y, x, env.playerTurret.facing_up_ln1)
+        window.addstr(y + 1, x, env.playerTurret.facing_up_ln2)
+        window.addstr(y + 2, x, env.playerTurret.facing_up_ln3)
+
+
 
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
     for i in range(0,len(ln1_sprite)):
@@ -520,6 +532,8 @@ def main():
 
         drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), env.player.health)
         drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), env.player.points)
+
+        place_turret((sw // 2) - ((sw // 2) - 10), (sh // 2) - ((sh // 2) - 10), env)
 
     
     ## DONT FORGET TO JOIN THY THREADS!
