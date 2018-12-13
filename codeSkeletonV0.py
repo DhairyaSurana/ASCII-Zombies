@@ -465,20 +465,30 @@ def place_turret(x, y, env):
         window.addstr(y + 2, x, env.playerTurret.facing_up_ln3)
 
 #character ID: zombie = range(1,999), hero = -1 
-def place_if_valid(env, old_origin, new_origin, character_ID, ):
+def place_if_valid(env, old_origin, new_origin, character_ID ):
     
     #first check if placement is valid
     #then wipe old 
     #place new
     newrow = new_origin[0]
     newcol = new_origin[1]
-    oldrow = new_origin[0]
-    oldcol = new_origin[1]
+    oldrow = old_origin[0]
+    oldcol = old_origin[1]
     
     if(character_ID == -1):
+        #check
         for i in range(0,env.player.len_of_sprite):
-            if(env.checkerboard[newrow][newcol] != 0):
+            if(env.checkerboard[newrow][newcol+i] != 0):
                 return False
+        #wipe
+        for i in range(0,env.player.len_of_sprite):
+            env.checkerboard[oldrow][oldcol+i] = 0
+            window.addch(oldrow, newrow, ' ')
+        #window.addstr(8,10, "ERROR zomb stepping in bad spot")
+        
+        
+
+                
 
 
 
