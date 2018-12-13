@@ -89,8 +89,7 @@ class hero:
 
     spriteMove2 = "└(ᶱ1ᶱ)┐"
     spriteMoveFired2 = "└(ᶱ.ᶱ)┐"
-
-
+    len_of_sprite = 7 #UPDATE IF MORE SPRITES COME
 
 
 class zombie:
@@ -102,6 +101,10 @@ class zombie:
     
     zombie_sprite_head = '{#_#}'
     zombie_sprite_body = ' (o)'
+
+    len_of_row0 = 5
+    len_of_row1 = 3
+    offset_of_row1 = 1
 
 
 class environment:
@@ -467,11 +470,17 @@ def place_if_valid(env, old_origin, new_origin, character_ID, ):
     #first check if placement is valid
     #then wipe old 
     #place new
+    newrow = new_origin[0]
+    newcol = new_origin[1]
+    oldrow = new_origin[0]
+    oldcol = new_origin[1]
     
-    new_row = new_origin[0]
-    cols = new_origin[1]
-    
-    #if(character_ID == -1): #hero
+    if(character_ID == -1):
+        for i in range(0,env.player.len_of_sprite):
+            if(env.checkerboard[newrow][newcol] != 0):
+                return False
+
+
 
     
 
