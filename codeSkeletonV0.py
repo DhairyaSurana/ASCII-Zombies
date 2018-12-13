@@ -510,9 +510,13 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
             env.checkerboard[oldrow][oldcol+i] = 0
             window.addch(oldrow, oldcol + i, ' ')
         
-        # for i in range(0,env.baddy.len_of_row0):
-        #     env.checkerboard[oldrow][oldcol+i] = 0
-        #     window.addch(oldrow, oldcol + i, ' ')
+        for i in range(0,env.baddy.len_of_row1):
+            env.checkerboard[oldrow][oldcol+i+offset] = 0
+            window.addch(oldrow, oldcol + i + offset, ' ')
+        #place
+        
+
+        
 
 
                 
