@@ -116,9 +116,39 @@ def dynamic_print(timeSpan, x, y, text, color):
         time.sleep(timeSpan)
         tempX+=1
 
+def boundError(x, y):
+
+    if(x > sw or y > sh):
+        print("Values are not within bounds")
+        return True
+
+    return False
+
 def drawHealthBar(x, y, health):
 
-    window.addStr(y, x, "=" * health)
+    if(not boundError(x, y)):
+        window.addstr(y, x, "Health: ", curses.A_BOLD)
+
+    if(not boundError(x + 8, y)):
+        
+        RED_TEXT = 1
+        curses.init_pair(RED_TEXT, curses.COLOR_RED, curses.COLOR_BLACK)
+
+        bar = "❤" * health
+        window.addstr(y, x + 8, bar, curses.color_pair(RED_TEXT))
+
+def drawPointBar(x, y, points):
+
+    if(not boundError(x, y)):
+        window.addstr(y, x, "Points: ", curses.A_BOLD)
+
+    if(not boundError(x + 8, y)):
+        
+        YELLOW_TEXT = 2
+        curses.init_pair(YELLOW_TEXT, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+
+        bar = "$" * points
+        window.addstr(y, x + 8, bar, curses.color_pair(YELLOW_TEXT))
 
 def init_map(ze_map, lock):
     ze_map.lock = lock
@@ -433,8 +463,8 @@ def main():
     lock = threading.Lock()
     init_map(ze_map, lock)
     
+    
     #display_intro_message()
-    #display_title()
     
     baddies_thread = Thread(target=move_baddies,args=(ze_map,))
     baddies_thread.daemon = True #exit when main exits
@@ -454,6 +484,8 @@ def main():
           
 
         window.border(0)
+        drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), 6)
+        drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), 6)
     
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
