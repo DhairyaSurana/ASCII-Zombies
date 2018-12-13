@@ -91,6 +91,8 @@ class hero:
     spriteMoveFired2 = "└(ᶱ.ᶱ)┐"
 
 
+
+
 class zombie:
     col = 0
     row = 0
@@ -459,7 +461,19 @@ def place_turret(x, y, env):
         window.addstr(y + 1, x, env.playerTurret.facing_up_ln2)
         window.addstr(y + 2, x, env.playerTurret.facing_up_ln3)
 
+#character ID: zombie = range(1,999), hero = -1 
+def place_if_valid(env, old_origin, new_origin, character_ID, ):
+    
+    #first check if placement is valid
+    #then wipe old 
+    #place new
+    
+    new_row = new_origin[0]
+    cols = new_origin[1]
+    
+    #if(character_ID == -1): #hero
 
+    
 
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
     for i in range(0,len(ln1_sprite)):
