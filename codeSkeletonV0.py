@@ -132,16 +132,24 @@ def boundError(x, y):
 
 def drawHealthBar(x, y, health):
 
-    
+    global old_health
+    #global old_bar
+
+    if(health != old_health):
+
+        old_bar = "❤ " * old_health
+        clear_sprite(y, x + 8, old_bar)
+        old_health = health
+
     if(not boundError(x, y)):
         window.addstr(y, x, "Health: ", curses.A_BOLD)
 
     if(not boundError(x + 8, y)):
         
-        RED_TEXT = 1 
+        RED_TEXT = 1
         curses.init_pair(RED_TEXT, curses.COLOR_RED, curses.COLOR_BLACK)
 
-        bar = "❤" * health
+        bar = "❤ " * health
           #  old_bar = bar
         window.addstr(y, x + 8, bar, curses.color_pair(RED_TEXT))
 
@@ -155,7 +163,7 @@ def drawPointBar(x, y, points):
         YELLOW_TEXT = 2
         curses.init_pair(YELLOW_TEXT, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 
-        bar = "$" * points
+        bar = "$ " * points
         window.addstr(y, x + 8, bar, curses.color_pair(YELLOW_TEXT))
 
 def init_map(env, lock):
@@ -264,6 +272,7 @@ def move_hero(env, keypress):
         if env.checkerboard[row+1][col] == 0:
             new_hero_pos[0] += 1
     elif key == curses.KEY_UP:
+        env.player.health+=1 #For testing purposes, remove once done
         if env.checkerboard[row-1][col] == 0:
             new_hero_pos[0] -= 1
     elif key == curses.KEY_LEFT:
@@ -275,7 +284,7 @@ def move_hero(env, keypress):
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
-        env.player.health-=1
+        env.player.health-=1 #For testing purposes, remove once done
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
