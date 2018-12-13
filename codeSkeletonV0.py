@@ -6,9 +6,10 @@ from threading import Thread
 import time
 import subprocess
 import queue
+# $ python3.7 -m pip install pygame
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
-import numpy as np   #non stl.. $ pip3 install numpy
+import numpy as np   #non stl.. $ pip3 install numpy # $python3.7 -m pip install numpy
 
 
 ####### <RANDOM THOUGHTS> #######
@@ -245,7 +246,7 @@ def move_hero(env, keypress):
     global hero_sprite_type
     global hero_func_first_run
     
-    env.lock.acquire() # (;
+    env.lock.acquire() ####### (;
 
     key = keypress
 
@@ -267,19 +268,18 @@ def move_hero(env, keypress):
         
     new_hero_pos = [env.player.row, env.player.col]
 
-
     if key == curses.KEY_DOWN:
-        if env.checkerboard[row+1][col] == 0:
+        if placement_is_valid(row + 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[0] += 1
     elif key == curses.KEY_UP:
         env.player.health+=1 #For testing purposes, remove once done
-        if env.checkerboard[row-1][col] == 0:
+        if placement_is_valid(row - 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[0] -= 1
     elif key == curses.KEY_LEFT:
-        if env.checkerboard[row][col+1] == 0:
+        if placement_is_valid(row, col - 1, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[1] -= 1
     elif key == curses.KEY_RIGHT:
-        if env.checkerboard[row][col-1] == 0:
+        if placement_is_valid(row, col + 1, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
             new_hero_pos[1] += 1
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
@@ -360,32 +360,28 @@ def move_baddies(env):
         zomb_func_first_run = 0
 
         #calculate
-        target = [env.player.row, env.player.column] #hero's "head"
+        target = [env.player.row, env.player.column+2] # + 2 for near middle of hero's body
         
         if env.baddy.row < target[0]:
-            if env.checkerboard[row+2][col] == 0:
+            #if env.checkerboard[row+2][col] == 0:
+            if placement_is_valid(env.baddy.row + 1, env.baddy.col, env,
+                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
                 env.baddy.row += 1
         elif env.baddy.row > target[0]:
-            if env.checkerboard[row-1][col] == 0:
+            #if env.checkerboard[row-1][col] == 0:
+            if placement_is_valid(env.baddy.row - 1 ,env.baddy.col, env,
+                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
                 env.baddy.row -= 1
 
         if env.baddy.col < target[1]:
-            if env.checkerboard[row][col+1] == 0:
+            if placement_is_valid(env.baddy.row ,env.baddy.col + 1, env,
+                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
                 env.baddy.col += 1
         elif env.baddy.col > target[1]:
-            if env.checkerboard[row][col-1] == 0:
+            if placement_is_valid(env.baddy.row ,env.baddy.col - 1, env,
+                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
                 env.baddy.col -= 1
 
-        # if env.baddy.row < target[0]:
-        #     if env.checkerboard[row+1][col] == 0:
-        #         env.baddy.row += 1
-        # elif env.baddy.row > target[0]:
-        #     env.baddy.row -= 1
-
-        # if env.baddy.col < target[1]:
-        #     env.baddy.col += 1
-        # elif env.baddy.col > target[1]:
-        #     env.baddy.col -= 1
 
         #place
         window.addstr(int(env.baddy.row),int(env.baddy.col) + 1, env.baddy.zombie_sprite_head)
@@ -430,6 +426,26 @@ def auto_turret(env):
     turret = "===I +"
     turret = "++++++"
  
+
+def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
+    for i in range(0,len(ln1_sprite)):
+        if(env.checkerboard[row][col+i] != 0 ):
+            return False
+    
+    for i in range(0,len(ln2_sprite)):
+        if(env.checkerboard[row+1][col+i] != 0 ):
+            return False
+    
+    for i in range(0,len(ln3_sprite)):
+        if(env.checkerboard[row+2][col+i] != 0 ):
+            return False
+    
+    for i in range(0,len(ln4_sprite)):
+        if(env.checkerboard[row+3][col+i] != 0 ):
+            return False
+
+    return True
+
 
 def fireBullet(env): 
     while 1:
@@ -481,7 +497,6 @@ def main():
     env = environment()
     lock = threading.Lock()
     init_map(env, lock)
-    
 
     #display_intro_message()
     
@@ -500,10 +515,8 @@ def main():
             quit() # TODO MAKE A PAUSE SCREEN? IF WE HAVE TIME.
         else:
             move_hero(env, key)
-          
 
         window.border(0)
-      
 
         drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), env.player.health)
         drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), env.player.points)
