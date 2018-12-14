@@ -103,7 +103,7 @@ class zombie:
     zombie_sprite_left_attack_head ='~{#_#}'
     zombie_sprite_right_attack_head ='{#_#}~' #TODO make bodies too and implement
     
-    zombie_sprite_head = '{#_#}'
+    zombie_sprite_head = "{#_#}"
     zombie_sprite_body =  '(o)'
 
     len_of_row0 = 5
@@ -205,6 +205,19 @@ def init_map(env, lock):
     env.hero_sprite = env.player.spriteRest 
 
 
+def draw_finish_line(env):
+    
+    pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
+    #place_if_valid(env,pos,pos,-99)
+
+#    if(character_ID == -99):
+    for x in range(0, finishLine.num_rows_or_height):
+        for i in range(0,finishLine.width_or_length):
+            env.checkerboard[pos[0]+x][pos[1]+i] = -99
+        window.addstr(x,pos[1], finishLine.rows[x])
+    #window.addch(pos[0],i, )
+                
+
 def display_intro_message():
 
     YELLOW_TEXT = 1
@@ -240,7 +253,6 @@ def display_title():
         sys.stdout.flush()
     time.sleep(.12)
 
-
 ## should be run inside a locked function body!
 def place_sprite(y, x, sprite):
     if y < sh and y >= 0:
@@ -260,7 +272,6 @@ def clear_sprite(y, x, sprite):
             #     spaces_str += " "
 
 
-# TODO make sure every action is checked to be in map bounds!!
 def move_hero(env, keypress):
 
     global last_time_fired
@@ -370,18 +381,22 @@ def move_baddies(env):
         if env.baddy.row < target[0]:
             new_pos = [env.baddy.row+1,env.baddy.col]
             place_if_valid(env,old_pos,new_pos,1)
+            old_pos = [env.baddy.row,env.baddy.col]
 
         elif env.baddy.row > target[0]:
             new_pos = [env.baddy.row-1,env.baddy.col]
             place_if_valid(env,old_pos,new_pos,1)
+            old_pos = [env.baddy.row,env.baddy.col]
 
         if env.baddy.col < target[1]:
             new_pos = [env.baddy.row,env.baddy.col+1]
             place_if_valid(env,old_pos,new_pos,1)
+            old_pos = [env.baddy.row,env.baddy.col]
 
         elif env.baddy.col > target[1]:
             new_pos = [env.baddy.row,env.baddy.col-1]
             place_if_valid(env,old_pos,new_pos,1)
+            old_pos = [env.baddy.row,env.baddy.col]
 
         env.lock.release()
         time.sleep(0.65)
@@ -431,22 +446,25 @@ def clear_turret(x, y, direction, env):
             clear_sprite(y + 1, x, env.playerTurret.facing_right_ln2)
             clear_sprite(y + 2, x, env.playerTurret.facing_right_ln3)
 
-def scan_player_row(row, col, env, character_ID):
+def verify_player_row(row, col, env, character_ID):
 
     for i in range(0,env.player.len_of_sprite):
         if(env.checkerboard[row][col+i] != 0 and env.checkerboard[row][col+i] != character_ID):
             return False
+    return True
 
-def scan_zombie_row(row, col, env, offset, character_ID):
+def verify_zombie_rows(row, col, env, offset, character_ID):
 
     for i in range(0,env.baddy.len_of_row0):
         if(env.checkerboard[row][col+i] != 0 and env.checkerboard[row][col+i] != character_ID):
             return False
-
     
     for i in range(0,env.baddy.len_of_row1):
         if(env.checkerboard[row+1][col+i+offset] != 0 and env.checkerboard[row+1][col+i+offset] != character_ID ):
             return False
+
+    return True
+
 
 def clear_player_row(row, col, env):
 
@@ -454,7 +472,8 @@ def clear_player_row(row, col, env):
         env.checkerboard[row][col+i] = 0
         window.addch(row, col + i, ' ')
 
-def clear_zombie_row(row, col, env, offset):
+
+def clear_zombie_rows(row, col, env, offset):
 
     for i in range(0,env.baddy.len_of_row0):
         env.checkerboard[row][col+i] = 0
@@ -475,7 +494,7 @@ def place_player(row, col, env):
         #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
 
 
-def place_zombie(row, col, offset,  env, character_ID):
+def place_zombie_rows(row, col, offset,  env, character_ID):
 
     for i in range(0,env.baddy.len_of_row0):
         env.checkerboard[row][col+i] = character_ID
@@ -501,18 +520,19 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
     #Player
     if(character_ID == -1):
         #checks if 
-        scan_player_row(newrow, newcol, env, character_ID)
+        if verify_player_row(newrow, newcol, env, character_ID):
 
-        #wipe
-        clear_player_row(oldrow, oldcol, env)
+            #wipe
+            clear_player_row(oldrow, oldcol, env)
 
-        #place
-        place_player(newrow, newcol, env)
-
-    
-        env.player.row = newrow
-        env.player.col = newcol
-        return True
+            #place
+            place_player(newrow, newcol, env)
+        
+            env.player.row = newrow
+            env.player.col = newcol
+            return True
+    else:
+        return False
 
     # TODO change baddy to specific zombie
     if(character_ID >= 1):
@@ -520,17 +540,18 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         offset = env.baddy.offset_of_row1
 
         #check
-        scan_zombie_row(newrow, newcol, env, offset, character_ID)
+        if verify_zombie_rows(newrow, newcol, env, offset, character_ID):
+            #wipe
+            clear_zombie_rows(oldrow, oldcol, env, offset)
+            
+            #place
+            place_zombie_rows(newrow, newcol, offset,  env, character_ID)
 
-        #wipe
-        clear_zombie_row(oldrow, oldcol, env, offset)
-        
-        #place
-        place_zombie(newrow, newcol, offset,  env, character_ID)
-
-        env.baddy.row = newrow
-        env.baddy.col = newcol
-        return True
+            env.baddy.row = newrow
+            env.baddy.col = newcol
+            return True
+        else:
+            return False
 
     #Turret
   #  if(character_ID <= -10 and character_ID >= -20):
