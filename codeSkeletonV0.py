@@ -120,7 +120,10 @@ class environment:
     player = hero()  
     baddy = zombie()
     hero_sprite = ''
-    zombie_sprite = ''
+
+    baddy_sprite_head = ''
+    baddy_sprite_body = ''
+
     playerTurret = turret()
     turret_queue = queue.Queue()
     bullet_queue = queue.Queue()
@@ -206,6 +209,8 @@ def init_map(env, lock):
 
     #sets the initial sprite for the player
     env.hero_sprite = env.player.spriteRest 
+    env.baddy_sprite_head = env.baddy.zombie_sprite_head
+    env.baddy_sprite_body = env.baddy.zombie_sprite_body
 
 
 def draw_finish_line(env):
@@ -286,39 +291,26 @@ def move_hero(env, keypress):
     key = keypress
 
     bulletFired = False
-
-    # #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    # clear_sprite(env.player.row, env.player.col, env.hero_sprite)
-    # #clear from the map
-    # if not hero_func_first_run:
-    #     row = int(env.player.row)
-    #     col = int(env.player.col)
-    #     for i in range(0,6):
-    #         if(env.checkerboard[row][col+i] != -1):
-    #             window.addstr(8,10, "ERROR IN CLEARING HERO")
-    #             window.addstr(10,10, "hero row" + str(row))
-    #             window.addstr(12,10, "hero col" + str(col))
-    #         env.checkerboard[row][col+i] = 0
-    # hero_func_first_run = False
         
     old_pos = [env.player.row, env.player.col]
-
+    new_pos = [env.player.row, env.player.col]
+    
     if key == curses.KEY_DOWN:
         new_pos = [env.player.row + 1, env.player.col]
-        place_if_valid(env,old_pos,new_pos,-1)
+        
     elif key == curses.KEY_UP:
         if(env.player.health !=  10):#For testing purposes, remove once done
             env.player.health+=1 #For testing purposes, remove once done
         new_pos = [env.player.row - 1, env.player.col]
-        place_if_valid(env,old_pos,new_pos,-1)
+        
     elif key == curses.KEY_LEFT:
         new_pos = [env.player.row, env.player.col - 1]
-        place_if_valid(env,old_pos,new_pos,-1)
+       
     elif key == curses.KEY_RIGHT:
         new_pos = [env.player.row, env.player.col + 1]
-        place_if_valid(env,old_pos,new_pos,-1)
-
-    new_pos = [env.player.row, env.player.col]
+        
+    place_if_valid(env,old_pos,new_pos,-1)
+    
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
@@ -327,10 +319,10 @@ def move_hero(env, keypress):
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
-                bullet_info = [new_hero_pos,'right','⁍']
+                bullet_info = [new_pos,'right','⁍']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('a') or key == ord('A'):
-                bullet_info = [new_hero_pos,'left','⁌']
+                bullet_info = [new_pos,'left','⁌']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('w') or key == ord('W'):
                 bullet_info = [new_pos,'up','•']
@@ -380,26 +372,36 @@ def move_baddies(env):
 
         target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
         
-        old_pos = [env.baddy.row,env.baddy.col]
+        
         if env.baddy.row < target[0]:
             new_pos = [env.baddy.row+1,env.baddy.col]
-            place_if_valid(env,old_pos,new_pos,1)
             old_pos = [env.baddy.row,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
 
+
+            
         elif env.baddy.row > target[0]:
             new_pos = [env.baddy.row-1,env.baddy.col]
-            place_if_valid(env,old_pos,new_pos,1)
             old_pos = [env.baddy.row,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
 
+
+           
+           
         if env.baddy.col < target[1]:
             new_pos = [env.baddy.row,env.baddy.col+1]
-            place_if_valid(env,old_pos,new_pos,1)
             old_pos = [env.baddy.row,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
 
+
+           
+        
         elif env.baddy.col > target[1]:
             new_pos = [env.baddy.row,env.baddy.col-1]
-            place_if_valid(env,old_pos,new_pos,1)
             old_pos = [env.baddy.row,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
+
+
 
         env.lock.release()
         time.sleep(0.65)
@@ -492,22 +494,19 @@ def place_player(row, col, env):
 
     for i in range(0,env.player.len_of_sprite):
         env.checkerboard[row][col+i] = -1
-        #TODO add hero sprite changing here
-        
         window.addch(row, col + i, env.hero_sprite[i])
-        #window.addstr(row, col + i, ' ' * len(env.player.spriteRest))
-        #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
+        
 
 
 def place_zombie_rows(row, col, offset,  env, character_ID):
 
     for i in range(0,env.baddy.len_of_row0):
         env.checkerboard[row][col+i] = character_ID
-        window.addch(row, col+i, zombie.zombie_sprite_head[i])
+        window.addch(row, col+i, env.baddy_sprite_head[i])
         
     for i in range(0,env.baddy.len_of_row1):
         env.checkerboard[row+1][col+i+offset] = character_ID
-        window.addch(row+1, col+i+offset, zombie.zombie_sprite_body[i])
+        window.addch(row+1, col+i+offset, env.baddy_sprite_body[i])
 
 
 
