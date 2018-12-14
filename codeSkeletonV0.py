@@ -349,7 +349,7 @@ def move_hero(env, keypress):
             env.turrets.append(turret())
 
             env.turrets[-1].row = env.player.row
-            env.turrets[-1].col = env.player.col
+            env.turrets[-1].col = env.player.col + 10
 
             place_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
             env.player.points = 0
