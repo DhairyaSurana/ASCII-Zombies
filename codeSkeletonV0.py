@@ -125,7 +125,8 @@ class environment:
     turret_queue = queue.Queue()
     bullet_queue = queue.Queue()
     checkerboard = np.zeros((sh,sw),dtype=int) 
-    #0 for nothing there, -1 for player, -2 for turret, -10 for walls, 1 to inf correspond to zombos
+    #0 for nothing there, -1 for player, -10 to -20 for turret, -5 for walls,
+    #  1 to inf correspond to zombos
       
 
 def dynamic_print(timeSpan, x, y, text, color):
@@ -268,6 +269,10 @@ def clear_sprite(y, x, sprite):
     if y < sh and y >= 0:
         if x < sw and x >= 0:
             window.addstr(int(y),int(x), space)
+            # str_size = len(sprite)
+            # spaces_str = ""
+            # for i in (0,str_size):
+            #     spaces_str += " "
 
 
 def move_hero(env, keypress):
@@ -297,27 +302,23 @@ def move_hero(env, keypress):
     # hero_func_first_run = False
         
     old_pos = [env.player.row, env.player.col]
-    new_pos = [env.player.row, env.player.col]
 
     if key == curses.KEY_DOWN:
         new_pos = [env.player.row + 1, env.player.col]
-        #place_if_valid(env,old_pos,new_pos,-1)
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_UP:
         if(env.player.health !=  10):#For testing purposes, remove once done
             env.player.health+=1 #For testing purposes, remove once done
         new_pos = [env.player.row - 1, env.player.col]
-        #place_if_valid(env,old_pos,new_pos,-1)
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_LEFT:
         new_pos = [env.player.row, env.player.col - 1]
-        #place_if_valid(env,old_pos,new_pos,-1)
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_RIGHT:
         new_pos = [env.player.row, env.player.col + 1]
-    
-    
-    place_if_valid(env,old_pos,new_pos,-1)
-   
+        place_if_valid(env,old_pos,new_pos,-1)
 
- #   new_pos = [env.player.row, env.player.col]
+    new_pos = [env.player.row, env.player.col]
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
@@ -326,10 +327,10 @@ def move_hero(env, keypress):
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
-                bullet_info = [new_pos,'right','•']
+                bullet_info = [new_hero_pos,'right','⁍']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('a') or key == ord('A'):
-                bullet_info = [new_pos,'left','•']
+                bullet_info = [new_hero_pos,'left','⁌']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('w') or key == ord('W'):
                 bullet_info = [new_pos,'up','•']
@@ -372,9 +373,10 @@ def move_hero(env, keypress):
 def move_baddies(env):
 #    global zomb_func_first_run
     while(1):
-
         env.lock.acquire()
-        
+
+        # zombie_sprite_head = '{#_#}'
+        # zombie_sprite_body = ' (o)'
 
         target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
         
@@ -454,6 +456,7 @@ def verify_player_row(row, col, env, character_ID):
             return False
     return True
 
+
 def verify_zombie_rows(row, col, env, offset, character_ID):
 
     for i in range(0,env.baddy.len_of_row0):
@@ -472,6 +475,7 @@ def clear_player_row(row, col, env):
     for i in range(0,env.player.len_of_sprite):
         env.checkerboard[row][col+i] = 0
         window.addch(row, col + i, ' ')
+
 
 def clear_zombie_rows(row, col, env, offset):
 
@@ -504,6 +508,7 @@ def place_zombie_rows(row, col, offset,  env, character_ID):
     for i in range(0,env.baddy.len_of_row1):
         env.checkerboard[row+1][col+i+offset] = character_ID
         window.addch(row+1, col+i+offset, zombie.zombie_sprite_body[i])
+
 
 
 #character ID: zombie = range(1,999), hero = -1 
@@ -559,6 +564,7 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
          #   env.checkerboard[env.player.row][env.player.col + 10] = character_ID
             
     
+
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
     for i in range(0,len(ln1_sprite)):
         if(env.checkerboard[row][col+i] != 0 ):
@@ -696,9 +702,9 @@ def main():
     bullets_thread.daemon = True #exit when main exits
     bullets_thread.start()    
 
-    turrets_thread = Thread(target=automateTurret, args=(env,))
-    turrets_thread.daemon = True #exit when main exits
-    turrets_thread.start()
+    # turrets_thread = Thread(target=automateTurret, args=(env,))
+    # turrets_thread.daemon = True #exit when main exits
+    # turrets_thread.start()
 
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
@@ -720,7 +726,7 @@ def main():
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
     bullets_thread.join()
-    turrets_thread.join()
+    #turrets_thread.join()
 
     curses.endwin()
     subprocess.call(["reset"])
