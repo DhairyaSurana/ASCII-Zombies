@@ -77,6 +77,11 @@ class turret:
     facing_left_ln2 = "===I +"
     facing_left_ln3 = "++++++"
 
+
+    top_row = " "
+    middle_row = " "
+    bottom_row = " "
+
     len_of_row = 6
 
 class hero:
@@ -120,6 +125,8 @@ class environment:
     player = hero()  
     baddy = zombie()
     hero_sprite = ''
+
+    turrets = list()
 
     baddy_sprite_head = ''
     baddy_sprite_body = ''
@@ -195,6 +202,7 @@ def drawPointBar(x, y, points):
         window.addstr(y, x + 8, bar, curses.color_pair(YELLOW_TEXT))
 
 def init_map(env, lock):
+
     env.lock = lock
     
     hero_x =  sw // 4
@@ -215,16 +223,16 @@ def init_map(env, lock):
     env.baddy_sprite_body = env.baddy.zombie_sprite_body
 
 
-def draw_finish_line(env):
+#def draw_finish_line(env):
     
-    pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
-    place_if_valid(env,pos,pos,-99)
-    if(character_ID == -99):
-    for x in range(0, finishLine.num_rows_or_height):
-        for i in range(0,finishLine.width_or_length):
-            env.checkerboard[pos[0]+x][pos[1]+i] = -99
-        window.addstr(x,pos[1], finishLine.rows[x])
-    #window.addch(pos[0],i, )
+  #  pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
+   # place_if_valid(env,pos,pos,-99)
+   # if(character_ID == -99):
+   #for x in range(0, finishLine.num_rows_or_height):
+    #    for i in range(0,finishLine.width_or_length):
+    #        env.checkerboard[pos[0]+x][pos[1]+i] = -99
+   #     window.addstr(x,pos[1], finishLine.rows[x])
+   # #window.addch(pos[0],i, )
                 
 
 def display_intro_message():
@@ -336,10 +344,14 @@ def move_hero(env, keypress):
         window.addstr((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret", curses.A_BLINK)
 
         if key == ord('e'):
+
             clear_sprite((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret")
-            turret_info = [int(env.player.col) + 10, int(env.player.row)]
-            env.turret_queue.put(turret_info)
-           # place_turret(int(env.player.col) + 10, int(env.player.row), "up", env)
+            env.turrets.append(turret())
+
+            env.turrets[-1].row = env.player.row
+            env.turrets[-1].col = env.player.col
+
+            place_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
             env.player.points = 0
 
     elif env.player.points != 10:
