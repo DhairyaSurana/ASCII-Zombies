@@ -100,7 +100,7 @@ class zombie:
     zombie_sprite_right_attack_head ='{#_#}~' #TODO make bodies too and implement
     
     zombie_sprite_head = '{#_#}'
-    zombie_sprite_body = ' (o)'
+    zombie_sprite_body =  '(o)'
 
     len_of_row0 = 5
     len_of_row1 = 3
@@ -515,19 +515,15 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
             window.addch(oldrow, oldcol + i + offset, ' ')
         #place
         for i in range(0,env.baddy.len_of_row0):
-            env.checkerboard[newrow][newcol] = character_ID
+            env.checkerboard[newrow][newcol+i] = character_ID
             window.addch(newrow, newcol+i, zombie.zombie_sprite_head[i])
         
-        for i in range(0,env.baddy.len_of_row0):
-            env.checkerboard[newrow][newcol] = character_ID
-            window.addch(newrow, newcol+i, zombie.zombie_sprite_head[i])
-
-        
-
-        
+        for i in range(0,env.baddy.len_of_row1):
+            env.checkerboard[newrow+1][newcol+i+offset] = character_ID
+            window.addch(newrow, newcol+i, zombie.zombie_sprite_body[i])
+        return True
 
 
-                
 
 
 
