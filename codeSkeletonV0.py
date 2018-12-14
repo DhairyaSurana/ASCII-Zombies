@@ -487,9 +487,9 @@ def fire_turret(env, tur, dir):
         dist = 25
         for i in range(0,dist):
             #window.addch(tur.row + 1,tur.col + 3 + i, "@")
-            window.addch(5 ,20, "@")
-            window.addstr(5 ,60, "@dsafsdfasdfasdfasdfasd")
-            window.addstr(sh//2 ,20, "@dsafsdfasdfasdfasdfasd")
+            # window.addch(5 ,20, "@")
+            # window.addstr(5 ,60, "@dsafsdfasdfasdfasdfasd")
+            # window.addstr(sh//2 ,20, "@dsafsdfasdfasdfasdfasd")
             #pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
             place_sprite(tur.row + 1,tur.col + 3 + i, "@")
             if(i>5): #SCATTERSHOT!
@@ -532,12 +532,13 @@ def automateTurret2(env):
                         if tur.col + rcols < sw :
                             #if env.checkerboard[tur.row][tur.col + rcols] >= 1:
                             if env.checkerboard[tur.row+1][tur.col + rcols] == -1:
+                                #print("AHHHHHHH")
+                                #window.addstr(4, 5, "qadsssssssssssssssssssss")
                                 dir = "right"
                                 fire_turret(env, tur, dir)
                 
                 #target down randomly
                 if(random.randint(0,1)):
-
                     for drows in range(0, vert_targeting_dist):
                         if tur.row + drows < sh:
                                 #if env.checkerboard[tur.row + drows][tur.col] >= 1:
@@ -737,26 +738,6 @@ def place_if_valid(env, old_origin, new_origin, character_ID):
             env.checkerboard[env.player.row][env.player.col + 10] = character_ID
                 
     
-
-def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
-    for i in range(0,len(ln1_sprite)):
-        if(env.checkerboard[row][col+i] != 0 ):
-            return False
-    
-    for i in range(0,len(ln2_sprite)):
-        if(env.checkerboard[row+1][col+i] != 0 ):
-            return False
-    
-    for i in range(0,len(ln3_sprite)):
-        if(env.checkerboard[row+2][col+i] != 0 ):
-            return False
-    
-    for i in range(0,len(ln4_sprite)):
-        if(env.checkerboard[row+3][col+i] != 0 ):
-            return False
-
-    return True
-
 def drawExplosion(y, x):
     place_sprite(y, x, "ꙮ")
     place_sprite(y, x,  "꙰")
