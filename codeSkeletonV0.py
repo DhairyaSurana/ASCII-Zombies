@@ -55,6 +55,21 @@ bullet_row = 1
 bullet_col = 1
 ####### </INITILIZATIONZ> ###########
 
+class finishLine:
+   row0 = "  E +"
+   row1 = "  E +"
+   row2 = "  E +"
+   row3 = "  E +"
+   row4 = "  E +"
+   row5 = "  E +"
+   row6 = "  E +"
+   row7 = "  E +"
+   row8 = "  R +"
+   rows = [row0, row1, row2, row3, row4, row5, row6, row7, row8]
+   num_rows_or_height = 9
+   width_or_length = 5
+
+
 class turret:
 
     col = 0
@@ -123,9 +138,19 @@ class environment:
     turret_queue = queue.Queue()
     bullet_queue = queue.Queue()
     checkerboard = np.zeros((sh,sw),dtype=int) 
+
     #0 for nothing there, -1 for player, -10 to -20 for turret, -5 for walls,
     #  1 to inf correspond to zombos
-      
+
+def draw_finish_line(env):
+    
+    pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
+    
+    for x in range(0, finishLine.num_rows_or_height):
+        for i in range(0,finishLine.width_or_length):
+            env.checkerboard[pos[0]+x][pos[1]+i] = -99
+        window.addstr(pos[0]-x,pos[1], finishLine.rows[x])
+
 
 def dynamic_print(timeSpan, x, y, text, color):
 
@@ -209,19 +234,8 @@ def init_map(env, lock):
     #sets the initial sprite for the player
     env.hero_sprite = env.player.spriteRest
 
+    draw_finish_line(env)
 
-
-def draw_finish_line(env):
-    
-    pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
-    #place_if_valid(env,pos,pos,-99)
-
-#    if(character_ID == -99):
-    for x in range(0, finishLine.num_rows_or_height):
-        for i in range(0,finishLine.width_or_length):
-            env.checkerboard[pos[0]+x][pos[1]+i] = -99
-        window.addstr(x,pos[1], finishLine.rows[x])
-    #window.addch(pos[0],i, )
                 
 
 def display_intro_message():
