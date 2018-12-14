@@ -6,6 +6,8 @@ from threading import Thread
 import time
 import subprocess
 import queue
+from random import randint
+import math
 # $ python3.7 -m pip install pygame
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
@@ -114,7 +116,7 @@ class hero:
 
 
 class zombie:
-    col = 0
+    col = sw - (sw // 20)
     row = 0
 
     zombie_sprite_left_attack_head ='~{#_#}'
@@ -240,6 +242,8 @@ def init_map(env, lock):
     for i in range (0,3):
         eachZombie = zombie()
         eachZombie.zombie_ID = i + 1
+        eachZombie.row = randint(0,sh - (sh // 5)) # create zombie at random position
+        eachZombie.col = randint(sw - (sw // 10),sw - (sw // 20))
         env.zombie_list.append(eachZombie)    
 
     #sets the initial sprite for the player
@@ -384,13 +388,28 @@ def move_hero(env, keypress):
     env.player.hero_sprite_type+=1
     env.lock.release() # ;)
 
-def move_baddies(env):
+def move_baddies(env, counter, timeValue):
     """
     this function is run in a seperate thread. It will move
     all the zombie into the new location.
     """
+
     while(1):
         env.lock.acquire()
+
+        newZombies = 0
+        if (counter == 10):
+            newZombies = int (math.e ** (timeValue/5))
+            counter = 0
+            timeValue += 1
+
+        i = 0
+        for i in range (0,newZombies):
+            eachZombie = zombie()
+            eachZombie.zombie_ID = len(env.zombie_list) + 1
+            eachZombie.row = randint(0,sh - (sh // 5)) # create zombie at random position
+            eachZombie.col = randint(sw - (sw // 10),sw - (sw // 20))
+            env.zombie_list.append(eachZombie)    
 
         target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
 
@@ -416,9 +435,12 @@ def move_baddies(env):
                 old_pos = [each_zombie.row,each_zombie.col]
                 place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
 
+        if (timeValue > 23):
+            timeValue = 23
 
+        counter += 1
         env.lock.release()
-        time.sleep(0.65)
+        time.sleep(0.1)
 
  
 def place_turret(x, y, direction, env):
@@ -710,10 +732,11 @@ def main():
     env = environment()
     lock = threading.Lock()
     init_map(env, lock)
-
+    counter = 0
+    timeValue = 0
     #display_intro_message()
     
-    baddies_thread = Thread(target=move_baddies,args=(env,))
+    baddies_thread = Thread(target=move_baddies,args=(env, counter, timeValue, ))
     baddies_thread.daemon = True #exit when main exits
     baddies_thread.start()    
 
