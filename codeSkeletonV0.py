@@ -48,7 +48,6 @@ window.timeout(100) #and this?
 #the pygame init function was causing a lot of errors
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
-hero_sprite_type = 1
 old_health = 10
 old_points = 10
 #old_health_bar = "❤" * old_health
@@ -94,6 +93,9 @@ class hero:
     spriteMove2 = "└(ᶱ1ᶱ)┐"
     spriteMoveFired2 = "└(ᶱ.ᶱ)┐"
     len_of_sprite = 7 #UPDATE IF MORE SPRITES COME
+
+    hero_sprite_type = 1
+
 
 
 class zombie:
@@ -271,7 +273,7 @@ def clear_sprite(y, x, sprite):
 def move_hero(env, keypress):
 
     global last_time_fired
-    global hero_sprite_type
+    
     global hero_func_first_run
     
     env.lock.acquire() ####### (;
@@ -350,20 +352,20 @@ def move_hero(env, keypress):
         if key == ord('i'):
             env.player.points+=1
         
-    if hero_sprite_type == 1:
+    if env.player.hero_sprite_type == 1:
         if bulletFired:
             env.hero_sprite = env.player.spriteMoveFired1
         else:
             env.hero_sprite = env.player.spriteMove1
-    elif hero_sprite_type == 2:
+    elif env.player.hero_sprite_type == 2:
         if bulletFired:
             env.hero_sprite = env.player.spriteMoveFired2
         else:
             env.hero_sprite = env.player.spriteMove2
 
-        hero_sprite_type = 0
+        env.player.hero_sprite_type = 0
    
-    hero_sprite_type+=1
+    env.player.hero_sprite_type+=1
     env.lock.release() # ;)
 
 
@@ -488,7 +490,7 @@ def place_player(row, col, env):
         env.checkerboard[row][col+i] = -1
         #TODO add hero sprite changing here
         
-        window.addch(row, col + i, env.player.spriteRest[i])
+        window.addch(row, col + i, env.hero_sprite[i])
         #window.addstr(row, col + i, ' ' * len(env.player.spriteRest))
         #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
 
