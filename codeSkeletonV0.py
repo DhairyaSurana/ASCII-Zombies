@@ -486,6 +486,18 @@ def fire_turret(env, tur, dir):
     if dir == "right":
         dist = 25
         for i in range(0,dist):
+           # window.addch(tur.row + 1,tur.col + 3 + i, "@")
+           # window.addch(5 ,20, "@")
+           # window.addstr(5 ,60, "@dsafsdfasdfasdfasdfasd")
+           # window.addstr(sh//2 ,20, "@dsafsdfasdfasdfasdfasd")
+          #  pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
+          #  clear_sprite(tur.row + 1, tur.col + 2 + i, "@")
+           # place_sprite(tur.row + 1,tur.col + 3 + i, "@")
+          #  if(i>5): #SCATTERSHOT!
+         #       place_sprite(tur.row , tur.col + 3 + i, "@")
+         #       place_sprite(tur.row + 2, tur.col + 3 + i, "@")
+
+       #  
             env.lock.acquire()
 
             bullet_origin = [tur.row + 1, tur.col + 3]
@@ -509,16 +521,14 @@ def fire_turret(env, tur, dir):
                 if killZombie(env, bullet_row - 1, bullet_col) or killZombie(env, bullet_row + 1, bullet_col)  :
                     env.lock.release()
                     break
-
-                # place_sprite(tur.row , tur.col + 3 + i, "@")
+                 # place_sprite(tur.row , tur.col + 3 + i, "@")
                 # place_sprite(tur.row + 2, tur.col + 3 + i, "@")
-
 
 
             if env.checkerboard[tur.row + 1][tur.col + 3 + i] >= 1:
                 #deal damage`
                 break
-            
+
             env.lock.release()
             time.sleep(0.02)        
 
