@@ -516,7 +516,11 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         #place
         for i in range(0,env.baddy.len_of_row0):
             env.checkerboard[newrow][newcol] = character_ID
-            
+            window.addch(newrow, newcol+i, zombie.zombie_sprite_head[i])
+        
+        for i in range(0,env.baddy.len_of_row0):
+            env.checkerboard[newrow][newcol] = character_ID
+            window.addch(newrow, newcol+i, zombie.zombie_sprite_head[i])
 
         
 
