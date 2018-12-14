@@ -486,23 +486,46 @@ def fire_turret(env, tur, dir):
     if dir == "right":
         dist = 25
         for i in range(0,dist):
-            #window.addch(tur.row + 1,tur.col + 3 + i, "@")
-            # window.addch(5 ,20, "@")
-            # window.addstr(5 ,60, "@dsafsdfasdfasdfasdfasd")
-            # window.addstr(sh//2 ,20, "@dsafsdfasdfasdfasdfasd")
-            #pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
-            place_sprite(tur.row + 1,tur.col + 3 + i, "@")
-            if(i>5): #SCATTERSHOT!
-                place_sprite(tur.row , tur.col + 3 + i, "@")
-                place_sprite(tur.row + 2, tur.col + 3 + i, "@")
+            env.lock.acquire()
+
+            bullet_origin = [tur.row + 1, tur.col + 3]
+            bullet_type = '@'
+            #place_sprite(tur.row + 1,tur.col + 3 + i, "@")
+            
+            clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
+            place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
+            bullet_row = bullet_origin[0]
+            bullet_col = bullet_origin[1] + i
+            if killZombie(env, bullet_row, bullet_col):
+                env.lock.release() 
+                break
+            if(i>9): #SCATTERSHOT!
+                clear_sprite(bullet_origin[0] - 1, bullet_origin[1]+i-1, ' ')
+                clear_sprite(bullet_origin[0] + 1, bullet_origin[1]+i-1, ' ')
+                
+                place_sprite(bullet_origin[0] - 1, bullet_origin[1]+i, bullet_type)
+                place_sprite(bullet_origin[0] + 1, bullet_origin[1]+i, bullet_type)
+                
+                if killZombie(env, bullet_row - 1, bullet_col) or killZombie(env, bullet_row + 1, bullet_col)  :
+                    env.lock.release()
+                    break
+
+                # place_sprite(tur.row , tur.col + 3 + i, "@")
+                # place_sprite(tur.row + 2, tur.col + 3 + i, "@")
+
+
 
             if env.checkerboard[tur.row + 1][tur.col + 3 + i] >= 1:
                 #deal damage`
                 break
-    else:
-        dist = 7
+            
+            env.lock.release()
+            time.sleep(0.02)        
 
-        
+    # else:
+    #     dist = 7
+
+    #env.lock.release()
 
 
 def automateTurret2(env):
@@ -535,7 +558,9 @@ def automateTurret2(env):
                                 #print("AHHHHHHH")
                                 #window.addstr(4, 5, "qadsssssssssssssssssssss")
                                 dir = "right"
+                                env.lock.release()
                                 fire_turret(env, tur, dir)
+                                env.lock.acquire()
                 
                 #target down randomly
                 if(random.randint(0,1)):
@@ -544,7 +569,9 @@ def automateTurret2(env):
                                 #if env.checkerboard[tur.row + drows][tur.col] >= 1:
                                 if env.checkerboard[tur.row + drows][tur.col] == -1:
                                     dir = "down"
+                                    env.lock.release()
                                     fire_turret(env, tur, dir)
+                                    env.lock.aquire()
 
 
                 # if turret.row < target[0]:
@@ -784,6 +811,7 @@ def automateTurret(env):
             place_turret(x, y, "left", env)
             env.lock.release()
 
+#run in a locked function!
 def killZombie(env, bullet_row, bullet_col):
     """
     This function is to compare the location of bullet vs zombie
