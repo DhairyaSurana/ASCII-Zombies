@@ -218,8 +218,8 @@ def init_map(env, lock):
 def draw_finish_line(env):
     
     pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
-    #place_if_valid(env,pos,pos,-99)
-#    if(character_ID == -99):
+    place_if_valid(env,pos,pos,-99)
+    if(character_ID == -99):
     for x in range(0, finishLine.num_rows_or_height):
         for i in range(0,finishLine.width_or_length):
             env.checkerboard[pos[0]+x][pos[1]+i] = -99
