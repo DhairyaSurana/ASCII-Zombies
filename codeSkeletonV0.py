@@ -446,7 +446,9 @@ def move_baddies(env, counter, timeValue):
 
         counter += 1
         env.lock.release()
-        time.sleep(0.15)
+        time.sleep(0.25) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
+
+
 def automateTurret(env):
 
     while 1:
@@ -484,6 +486,11 @@ def fire_turret(env, tur, dir):
     if dir == "right":
         dist = 25
         for i in range(0,dist):
+            #window.addch(tur.row + 1,tur.col + 3 + i, "@")
+            window.addch(5 ,20, "@")
+            window.addstr(5 ,60, "@dsafsdfasdfasdfasdfasd")
+            window.addstr(sh//2 ,20, "@dsafsdfasdfasdfasdfasd")
+            #pos = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
             place_sprite(tur.row + 1,tur.col + 3 + i, "@")
             if(i>5): #SCATTERSHOT!
                 place_sprite(tur.row , tur.col + 3 + i, "@")
@@ -521,23 +528,22 @@ def automateTurret2(env):
 
                 #target right randomly
                 if(random.randint(0,1)):
-                    for rcols in range(tur.col, tur.col+horiz_targeting_dist, 2):
-                        #if env.checkerboard[tur.row][tur.col + rcols] >= 1:
-                        if env.checkerboard[tur.row][tur.col + rcols] == -1:
-                            dir = "right"
-                            fire_turret(env, tur, dir)
+                    for rcols in range(0,horiz_targeting_dist, 2):
+                        if tur.col + rcols < sw :
+                            #if env.checkerboard[tur.row][tur.col + rcols] >= 1:
+                            if env.checkerboard[tur.row+1][tur.col + rcols] == -1:
+                                dir = "right"
+                                fire_turret(env, tur, dir)
                 
                 #target down randomly
                 if(random.randint(0,1)):
-                    if(tur.row >= sh - 1):
-                        max_row = sh - 1
-                    else:
-                        max_row = tur.row
-                        
-                    for drows in range(max_row, tur.col+vert_targeting_dist):
-                        if env.checkerboard[tur.row + drows][tur.col] >= 1:
-                            dir = "down"
-                            fire_turret(env, tur, dir)
+
+                    for drows in range(0, vert_targeting_dist):
+                        if tur.row + drows < sh:
+                                #if env.checkerboard[tur.row + drows][tur.col] >= 1:
+                                if env.checkerboard[tur.row + drows][tur.col] == -1:
+                                    dir = "down"
+                                    fire_turret(env, tur, dir)
 
 
                 # if turret.row < target[0]:
