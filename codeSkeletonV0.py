@@ -136,7 +136,7 @@ class environment:
     player = hero()  
     zombie_list = list()
     hero_sprite = ''
-
+    turrets = list()
     playerTurret = turret()
     turret_queue = queue.Queue()
     bullet_queue = queue.Queue()
@@ -364,9 +364,14 @@ def move_hero(env, keypress):
 
         if key == ord('e'):
             clear_sprite((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret")
-            turret_info = [int(env.player.col) + 10, int(env.player.row)]
-            env.turret_queue.put(turret_info)
+           # turret_info = [int(env.player.col) + 10, int(env.player.row)]
+           # env.turret_queue.put(turret_info)
            # place_turret(int(env.player.col) + 10, int(env.player.row), "up", env)
+            env.turrets.append(turret())
+            env.turrets[-1].row = env.player.row
+            env.turrets[-1].col = env.player.col + 10
+            place_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
+
             env.player.points = 0
 
     elif env.player.points != 10:
@@ -442,6 +447,116 @@ def move_baddies(env, counter, timeValue):
         counter += 1
         env.lock.release()
         time.sleep(0.15)
+def automateTurret(env):
+
+    while 1:
+
+        if len(env.turrets) > 0:
+            env.lock.acquire()
+            for turret in env.turrets:
+                #Currently points to player, this will change in the future
+                target = [env.player.row, env.player.col]
+
+                if turret.row < target[0]:
+                    clear_turret(turret.col, turret.row, "right", env)
+                    place_turret(turret.col, turret.row, "down", env)
+
+
+                elif turret.row > target[0]:
+                    clear_turret(turret.col, turret.row, "left", env)
+                    place_turret(turret.col, turret.row, "up", env)
+
+
+                elif turret.col < target[1]: 
+                    clear_turret(turret.col, turret.row, "down", env)
+                    place_turret(turret.col, turret.row, "right", env)
+
+        
+                elif env.turrets[-1].col > target[1]:
+                    clear_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
+                    place_turret(env.turrets[-1].col, env.turrets[-1].row, "left", env)
+           
+        
+            env.lock.release()
+            time.sleep(0.65)
+
+def fire_turret(env, tur, dir):
+    if dir == "right":
+        dist = 25
+        for i in range(0,dist):
+            place_sprite(tur.row + 1,tur.col + 3 + i, "@")
+            if(i>5): #SCATTERSHOT!
+                place_sprite(tur.row , tur.col + 3 + i, "@")
+                place_sprite(tur.row + 2, tur.col + 3 + i, "@")
+
+            if env.checkerboard[tur.row + 1][tur.col + 3 + i] >= 1:
+                #deal damage`
+                break
+    else:
+        dist = 7
+
+        
+
+
+def automateTurret2(env):
+
+    while 1:
+
+        if len(env.turrets) > 0:
+            env.lock.acquire()
+            for tur in env.turrets:
+                
+                horiz_targeting_dist = 14
+                vert_targeting_dist = 6
+
+                #target right randomly
+                if(random.randint(0,1)):
+                    for rcols in range(tur.col, tur.col+horiz_targeting_dist, 2):
+                        #if env.checkerboard[tur.row][tur.col + rcols] >= 1:
+                        if env.checkerboard[tur.row][tur.col + rcols] == -1:
+                            dir = "right"
+                            fire_turret(env, tur, dir)
+                
+                #target down randomly
+                if(random.randint(0,1)):
+                    if(tur.row >= sh - 1):
+                        max_row = sh - 1
+                    else:
+                        max_row = tur.row
+                        
+                    for drows in range(max_row, tur.col+vert_targeting_dist):
+                        if env.checkerboard[tur.row + drows][tur.col] >= 1:
+                            dir = "down"
+                            fire_turret(env, tur, dir)
+
+
+                # if turret.row < target[0]:
+                #     clear_turret(turret.col, turret.row, "right", env)
+                #     place_turret(turret.col, turret.row, "down", env)
+
+
+                # elif turret.row > target[0]:
+                #     clear_turret(turret.col, turret.row, "left", env)
+                #     place_turret(turret.col, turret.row, "up", env)
+
+
+                # elif turret.col < target[1]: 
+                #     clear_turret(turret.col, turret.row, "down", env)
+                #     place_turret(turret.col, turret.row, "right", env)
+
+        
+                # elif env.turrets[-1].col > target[1]:
+                #     clear_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
+                #     place_turret(env.turrets[-1].col, env.turrets[-1].row, "left", env)
+           
+        
+            env.lock.release()
+            time.sleep(0.65)
+
+
+ 
+
+
 
  
 def place_turret(x, y, direction, env):
@@ -601,9 +716,9 @@ def place_if_valid(env, old_origin, new_origin, character_ID):
             return False
 
     #Turret
-  #  if(character_ID <= -10 and character_ID >= -20):
-       # for i in range(0, env.playerTurret.len_of_row):
-         #   env.checkerboard[env.player.row][env.player.col + 10] = character_ID
+   if(character_ID <= -10 and character_ID >= -20):
+       for i in range(0, env.playerTurret.len_of_row):
+           env.checkerboard[env.player.row][env.player.col + 10] = character_ID
             
     
 
@@ -777,9 +892,10 @@ def main():
     bullets_thread.daemon = True #exit when main exits
     bullets_thread.start()    
 
-    # turrets_thread = Thread(target=automateTurret, args=(env,))
-    # turrets_thread.daemon = True #exit when main exits
-    # turrets_thread.start()
+    #turrets_thread = Thread(target=automateTurret1, args=(env,))
+    turrets_thread = Thread(target=automateTurret2, args=(env,))
+    turrets_thread.daemon = True #exit when main exits
+    turrets_thread.start()
 
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
@@ -801,7 +917,7 @@ def main():
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
     bullets_thread.join()
-    #turrets_thread.join()
+    turrets_thread.join()
 
     curses.endwin()
     subprocess.call(["reset"])
