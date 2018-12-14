@@ -129,6 +129,7 @@ class zombie:
     len_of_row1 = 3
     offset_of_row1 = 1
     zombie_ID = 1
+    alive = True
 
 class environment:
     lock = threading.Lock()
@@ -386,7 +387,7 @@ def move_hero(env, keypress):
         env.player.hero_sprite_type = 0
    
     env.player.hero_sprite_type+=1
-    env.lock.release() # ;)
+    env.lock.release() 
 
 def move_baddies(env, counter, timeValue):
     """
@@ -414,33 +415,33 @@ def move_baddies(env, counter, timeValue):
         target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
 
         for each_zombie in env.zombie_list:
-           
-            if each_zombie.row < target[0]:
-                new_pos = [each_zombie.row+1,each_zombie.col]
-                old_pos = [each_zombie.row,each_zombie.col]
-                place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
-              
-            elif each_zombie.row > target[0]:
-                new_pos = [each_zombie.row-1,each_zombie.col]
-                old_pos = [each_zombie.row,each_zombie.col]
-                place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
-     
-            if each_zombie.col < target[1]:
-                new_pos = [each_zombie.row,each_zombie.col+1]
-                old_pos = [each_zombie.row,each_zombie.col]
-                place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
- 
-            elif each_zombie.col > target[1]:
-                new_pos = [each_zombie.row,each_zombie.col-1]
-                old_pos = [each_zombie.row,each_zombie.col]
-                place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
+            if each_zombie.alive:
+                if each_zombie.row < target[0]:
+                    new_pos = [each_zombie.row+1,each_zombie.col]
+                    old_pos = [each_zombie.row,each_zombie.col]
+                    place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
+                
+                elif each_zombie.row > target[0]:
+                    new_pos = [each_zombie.row-1,each_zombie.col]
+                    old_pos = [each_zombie.row,each_zombie.col]
+                    place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
+        
+                if each_zombie.col < target[1]:
+                    new_pos = [each_zombie.row,each_zombie.col+1]
+                    old_pos = [each_zombie.row,each_zombie.col]
+                    place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
+    
+                elif each_zombie.col > target[1]:
+                    new_pos = [each_zombie.row,each_zombie.col-1]
+                    old_pos = [each_zombie.row,each_zombie.col]
+                    place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
 
         if (timeValue > 23):
             timeValue = 23
 
         counter += 1
         env.lock.release()
-        time.sleep(0.1)
+        time.sleep(0.15)
 
  
 def place_turret(x, y, direction, env):
@@ -671,6 +672,25 @@ def automateTurret(env):
             place_turret(x, y, "left", env)
             env.lock.release()
 
+def killZombie(env, bullet_row, bullet_col):
+    """
+    This function is to compare the location of bullet vs zombie
+    if bullet hits a zombie, it will erase zombie from the board
+    and delete zombie from zombie_list
+    """
+    if bullet_row < sh and bullet_row >= 0:
+        if bullet_col < sw and bullet_col >= 0:
+            zombieID = env.checkerboard[bullet_row][bullet_col]
+            if  (zombieID >= 1):
+                    death_zombie = env.zombie_list[zombieID-1]
+                    death_zombie.alive = False
+                    clear_zombie_rows(death_zombie.row, death_zombie.col, env, 1, death_zombie)
+                    return True
+    return False
+
+
+
+
 def fireBullet(env): 
     while 1:
         bullet_info = None
@@ -684,7 +704,7 @@ def fireBullet(env):
             bullet_type = bullet_info[2]           
             # vert_range = 8 
             # horiz_range = 20 
-            distance = 20
+            distance = (sw // 5)
             for i in range(1,distance):
                 env.lock.acquire()
                 
@@ -693,27 +713,40 @@ def fireBullet(env):
                     place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
                     bullet_row = bullet_origin[0]
                     bullet_col = bullet_origin[1] + i
+                    if killZombie(env, bullet_row, bullet_col):
+                        env.lock.release() 
+                        break
+
                 elif(bullet_direction == "left"):
                     clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
                     place_sprite(bullet_origin[0], bullet_origin[1]-i, bullet_type)
                     bullet_row = bullet_origin[0]
                     bullet_col = bullet_origin[1] - i
-    
+                    if killZombie(env, bullet_row, bullet_col):
+                        env.lock.release() 
+                        break
+
                 elif(bullet_direction == "up"):
                     clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
                     place_sprite(bullet_origin[0]-i, bullet_origin[1], bullet_type)
                     bullet_row = bullet_origin[0] - i
-                    bullet_col = bullet_origin[1] 
+                    bullet_col = bullet_origin[1]
+                    if killZombie(env, bullet_row, bullet_col):
+                        env.lock.release() 
+                        break
 
                 elif(bullet_direction == "down"):
                     clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
                     place_sprite(bullet_origin[0]+i, bullet_origin[1], bullet_type)
                     bullet_row = bullet_origin[0] + i
-                    bullet_col = bullet_origin[1] 
+                    bullet_col = bullet_origin[1]
+                    if killZombie(env, bullet_row, bullet_col):
+                        env.lock.release() 
+                        break
                
                
                 env.lock.release()
-                time.sleep(0.04)        
+                time.sleep(0.01)        
             
             env.lock.acquire()
             if(bullet_direction == "right"):
