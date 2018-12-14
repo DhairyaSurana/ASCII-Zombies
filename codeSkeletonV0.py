@@ -148,8 +148,19 @@ def draw_finish_line(env):
     
     for x in range(0, finishLine.num_rows_or_height):
         for i in range(0,finishLine.width_or_length):
-            env.checkerboard[pos[0]+x][pos[1]+i] = -99
+            env.checkerboard[pos[0]-x][pos[1]+i] = -99
         window.addstr(pos[0]-x,pos[1], finishLine.rows[x])
+
+
+def create_bounds(env):
+    for col in range(0,sw):
+        env.checkerboard[0][col] = -5
+        env.checkerboard[sh-1][col] = -5
+    
+    for row in range(0,sh):
+        env.checkerboard[row][0] = -5
+        env.checkerboard[row][sw-1] = -5
+        
 
 
 def dynamic_print(timeSpan, x, y, text, color):
@@ -235,7 +246,7 @@ def init_map(env, lock):
     env.hero_sprite = env.player.spriteRest
 
     draw_finish_line(env)
-
+    create_bounds(env)
                 
 
 def display_intro_message():
