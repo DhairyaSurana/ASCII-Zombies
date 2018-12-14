@@ -52,6 +52,8 @@ hero_sprite_type = 1
 old_health = 10
 old_points = 10
 #old_health_bar = "❤" * old_health
+bullet_row = 1
+bullet_col = 1
 ####### </INITILIZATIONZ> ###########
 
 class turret:
@@ -75,6 +77,8 @@ class turret:
     facing_left_ln1 = "++++++"
     facing_left_ln2 = "===I +"
     facing_left_ln3 = "++++++"
+
+    len_of_row = 6
 
 class hero:
     col = 0
@@ -116,6 +120,7 @@ class environment:
     hero_sprite = ''
     zombie_sprite = ''
     playerTurret = turret()
+    turret_queue = queue.Queue()
     bullet_queue = queue.Queue()
     checkerboard = np.zeros((sh,sw),dtype=int) 
     #0 for nothing there, -1 for player, -2 for turret, -10 for walls, 1 to inf correspond to zombos
@@ -303,14 +308,15 @@ def move_hero(env, keypress):
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
+      #s  drawExplosion(, bullet_col)
         env.player.health-=1 #For testing purposes, remove once done
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
-                bullet_info = [new_pos,'right','•']
+                bullet_info = [new_hero_pos,'right','⁍']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('a') or key == ord('A'):
-                bullet_info = [new_pos,'left','•']
+                bullet_info = [new_hero_pos,'left','⁌']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('w') or key == ord('W'):
                 bullet_info = [new_pos,'up','•']
@@ -324,7 +330,9 @@ def move_hero(env, keypress):
 
         if key == ord('e'):
             clear_sprite((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret")
-            place_turret(int(env.player.row), int(env.player.col) + 5, env)
+            turret_info = [int(env.player.col) + 10, int(env.player.row)]
+            env.turret_queue.put(turret_info)
+           # place_turret(int(env.player.col) + 10, int(env.player.row), "up", env)
             env.player.points = 0
 
     elif env.player.points != 10:
@@ -379,13 +387,105 @@ def move_baddies(env):
         time.sleep(0.65)
 
  
-def place_turret(x, y, env):
+def place_turret(x, y, direction, env):
 
-    if(not boundError(x, y)):
+        if(direction == "up"):
+            window.addstr(y, x, env.playerTurret.facing_up_ln1)
+            window.addstr(y + 1, x, env.playerTurret.facing_up_ln2)
+            window.addstr(y + 2, x, env.playerTurret.facing_up_ln3)
 
-        window.addstr(y, x, env.playerTurret.facing_up_ln1)
-        window.addstr(y + 1, x, env.playerTurret.facing_up_ln2)
-        window.addstr(y + 2, x, env.playerTurret.facing_up_ln3)
+        elif(direction == "down"):
+            window.addstr(y, x, env.playerTurret.facing_down_ln1)
+            window.addstr(y + 1, x, env.playerTurret.facing_down_ln2)
+            window.addstr(y + 2, x, env.playerTurret.facing_down_ln3)
+
+        elif(direction == "left"):
+            window.addstr(y, x, env.playerTurret.facing_left_ln1)
+            window.addstr(y + 1, x, env.playerTurret.facing_left_ln2)
+            window.addstr(y + 2, x, env.playerTurret.facing_left_ln3)
+
+        elif(direction == "right"):
+            window.addstr(y, x, env.playerTurret.facing_right_ln1)
+            window.addstr(y + 1, x, env.playerTurret.facing_right_ln2)
+            window.addstr(y + 2, x, env.playerTurret.facing_right_ln3)
+
+def clear_turret(x, y, direction, env):
+        
+        if(direction == "up"):
+            clear_sprite(y, x, env.playerTurret.facing_up_ln1)
+            clear_sprite(y + 1, x, env.playerTurret.facing_up_ln2)
+            clear_sprite(y + 2, x, env.playerTurret.facing_up_ln3)
+
+        elif(direction == "down"):
+            clear_sprite(y, x, env.playerTurret.facing_down_ln1)
+            clear_sprite(y + 1, x, env.playerTurret.facing_down_ln2)
+            clear_sprite(y + 2, x, env.playerTurret.facing_down_ln3)
+
+        elif(direction == "left"):
+            clear_sprite(y, x, env.playerTurret.facing_left_ln1)
+            clear_sprite(y + 1, x, env.playerTurret.facing_left_ln2)
+            clear_sprite(y + 2, x, env.playerTurret.facing_left_ln3)
+
+        elif(direction == "right"):
+            clear_sprite(y, x, env.playerTurret.facing_right_ln1)
+            clear_sprite(y + 1, x, env.playerTurret.facing_right_ln2)
+            clear_sprite(y + 2, x, env.playerTurret.facing_right_ln3)
+
+def scan_player_row(row, col, env, character_ID):
+
+    for i in range(0,env.player.len_of_sprite):
+        if(env.checkerboard[row][col+i] != 0 and env.checkerboard[row][col+i] != character_ID):
+            return False
+
+def scan_zombie_row(row, col, env, offset, character_ID):
+
+    for i in range(0,env.baddy.len_of_row0):
+        if(env.checkerboard[row][col+i] != 0 and env.checkerboard[row][col+i] != character_ID):
+            return False
+
+    
+    for i in range(0,env.baddy.len_of_row1):
+        if(env.checkerboard[row+1][col+i+offset] != 0 and env.checkerboard[row+1][col+i+offset] != character_ID ):
+            return False
+
+def clear_player_row(row, col, env):
+
+    for i in range(0,env.player.len_of_sprite):
+        env.checkerboard[row][col+i] = 0
+        window.addch(row, col + i, ' ')
+
+def clear_zombie_row(row, col, env, offset):
+
+    for i in range(0,env.baddy.len_of_row0):
+        env.checkerboard[row][col+i] = 0
+        window.addch(row, col + i, ' ')
+        
+    for i in range(0,env.baddy.len_of_row1):
+        env.checkerboard[row+1][col+i+offset] = 0
+        window.addch(row+1, col + i + offset, ' ')
+
+
+
+def place_player(row, col, env):
+
+    for i in range(0,env.player.len_of_sprite):
+        env.checkerboard[row][col+i] = -1
+        #TODO add hero sprite changing here
+        window.addch(row, col + i, env.player.spriteRest[i])
+        #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
+
+
+def place_zombie(row, col, offset,  env, character_ID):
+
+    for i in range(0,env.baddy.len_of_row0):
+        env.checkerboard[row][col+i] = character_ID
+        window.addch(row, col+i, zombie.zombie_sprite_head[i])
+        
+    for i in range(0,env.baddy.len_of_row1):
+        env.checkerboard[row+1][col+i+offset] = character_ID
+        window.addch(row+1, col+i+offset, zombie.zombie_sprite_body[i])
+
+
 
 #character ID: zombie = range(1,999), hero = -1 
 def place_if_valid(env, old_origin, new_origin, character_ID ):
@@ -398,60 +498,45 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
     oldrow = old_origin[0]
     oldcol = old_origin[1]
     
+    #Player
     if(character_ID == -1):
-        #check
-        for i in range(0,env.player.len_of_sprite):
-            if(env.checkerboard[newrow][newcol+i] != 0 and 
-                env.checkerboard[newrow][newcol+i] != character_ID):
-                return False
+        #checks if 
+        scan_player_row(newrow, newcol, env, character_ID)
+
         #wipe
-        for i in range(0,env.player.len_of_sprite):
-            env.checkerboard[oldrow][oldcol+i] = 0
-            window.addch(oldrow, oldcol + i, ' ')
+        clear_player_row(oldrow, oldcol, env)
+
         #place
-        for i in range(0,env.player.len_of_sprite):
-            env.checkerboard[newrow][newcol+i] = -1
-            #TODO add hero sprite changing here
-            window.addch(newrow, newcol + i, env.player.spriteRest[i])
-        #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
-        
+        place_player(newrow, newcol, env)
+
+    
         env.player.row = newrow
         env.player.col = newcol
         return True
 
     # TODO change baddy to specific zombie
     if(character_ID >= 1):
-        #check
-        for i in range(0,env.baddy.len_of_row0):
-            if(env.checkerboard[newrow][newcol+i] != 0 and 
-            env.checkerboard[newrow][newcol+i] != character_ID):
-                return False
-        
+
         offset = env.baddy.offset_of_row1
-        for i in range(0,env.baddy.len_of_row1):
-            if(env.checkerboard[newrow+1][newcol+i+offset] != 0 and 
-            env.checkerboard[newrow+1][newcol+i+offset] != character_ID ):
-                return False
+
+        #check
+        scan_zombie_row(newrow, newcol, env, offset, character_ID)
+
         #wipe
-        for i in range(0,env.baddy.len_of_row0):
-            env.checkerboard[oldrow][oldcol+i] = 0
-            window.addch(oldrow, oldcol + i, ' ')
+        clear_zombie_row(oldrow, oldcol, env, offset)
         
-        for i in range(0,env.baddy.len_of_row1):
-            env.checkerboard[oldrow+1][oldcol+i+offset] = 0
-            window.addch(oldrow+1, oldcol + i + offset, ' ')
         #place
-        for i in range(0,env.baddy.len_of_row0):
-            env.checkerboard[newrow][newcol+i] = character_ID
-            window.addch(newrow, newcol+i, zombie.zombie_sprite_head[i])
-        
-        for i in range(0,env.baddy.len_of_row1):
-            env.checkerboard[newrow+1][newcol+i+offset] = character_ID
-            window.addch(newrow+1, newcol+i+offset, zombie.zombie_sprite_body[i])
+        place_zombie(newrow, newcol, offset,  env, character_ID)
 
         env.baddy.row = newrow
         env.baddy.col = newcol
         return True
+
+    #Turret
+  #  if(character_ID <= -10 and character_ID >= -20):
+       # for i in range(0, env.playerTurret.len_of_row):
+         #   env.checkerboard[env.player.row][env.player.col + 10] = character_ID
+            
     
 
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
@@ -473,6 +558,51 @@ def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = 
 
     return True
 
+def drawExplosion(y, x):
+    place_sprite(y, x, "ꙮ")
+    place_sprite(y, x,  "꙰")
+   # time.sleep(0.25)
+   # clear_sprite(y, x, "ꙮ")
+    #clear_sprite(y, x,  "꙰")
+
+def automateTurret(env):
+
+    while 1:
+        turret_info = None
+        try:
+            turret_info = env.turret_info.get_nowait()
+        except:
+            pass
+        if turret_info is not None:
+
+            x = turret_info[0]
+            y = turret_info[1]
+
+            time.sleep(2)
+            env.lock.acquire()
+            place_turret(x, y, "up", env)
+            env.lock.release()
+
+            time.sleep(2)
+
+            env.lock.acquire()
+            clear_turret(x, y, "up", env)
+            place_turret(x, y, "right", env)
+            env.lock.release()
+
+            time.sleep(2)
+            
+            env.lock.acquire()
+            clear_turret(x, y, "right", env)
+            place_turret(x, y, "down", env)
+            env.lock.release()
+
+            time.sleep(2)
+
+            env.lock.acquire()
+            clear_turret(x, y, "down", env)
+            place_turret(x, y, "left", env)
+            env.lock.release()
 
 def fireBullet(env): 
     while 1:
@@ -494,16 +624,27 @@ def fireBullet(env):
                 if(bullet_direction == "right"):
                     clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
                     place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
+                    bullet_row = bullet_origin[0]
+                    bullet_col = bullet_origin[1] + i
                 elif(bullet_direction == "left"):
                     clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
                     place_sprite(bullet_origin[0], bullet_origin[1]-i, bullet_type)
+                    bullet_row = bullet_origin[0]
+                    bullet_col = bullet_origin[1] - i
+    
                 elif(bullet_direction == "up"):
                     clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
                     place_sprite(bullet_origin[0]-i, bullet_origin[1], bullet_type)
+                    bullet_row = bullet_origin[0] - i
+                    bullet_col = bullet_origin[1] 
+
                 elif(bullet_direction == "down"):
                     clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
                     place_sprite(bullet_origin[0]+i, bullet_origin[1], bullet_type)
-                    
+                    bullet_row = bullet_origin[0] + i
+                    bullet_col = bullet_origin[1] 
+               
+               
                 env.lock.release()
                 time.sleep(0.04)        
             
@@ -530,9 +671,14 @@ def main():
     baddies_thread = Thread(target=move_baddies,args=(env,))
     baddies_thread.daemon = True #exit when main exits
     baddies_thread.start()    
+
     bullets_thread = Thread(target=fireBullet,args=(env,))
     bullets_thread.daemon = True #exit when main exits
     bullets_thread.start()    
+
+    turrets_thread = Thread(target=automateTurret, args=(env,))
+    turrets_thread.daemon = True #exit when main exits
+    turrets_thread.start()
 
     while True: #TODO stop shit from going off screen and breaking the program lol
         key = window.getch() 
@@ -554,6 +700,7 @@ def main():
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
     bullets_thread.join()
+    turrets_thread.join()
 
     curses.endwin()
     subprocess.call(["reset"])
