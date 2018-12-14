@@ -368,28 +368,28 @@ def move_baddies(env):
     # zombie_sprite_head = '{#_#}'
     # zombie_sprite_body = ' (o)'
 
-        clear_sprite(env.baddy.row, env.baddy.col + 1, env.baddy.zombie_sprite_head)
-        clear_sprite(env.baddy.row + 1, env.baddy.col + 1, env.baddy.zombie_sprite_body)
-        row = int(env.baddy.row)
-        col = int(env.baddy.col)
-        if(zomb_func_first_run == 0):
-            for i in range(0,4):
-                if(env.checkerboard[row][col+i] != 1):
-                    window.addstr(8,10, "ERROR zomb stepping in bad spot")
-                    window.addstr(10,10, "zomb row " + str(row))
-                    window.addstr(12,10, "zomb col " + str(col))
-                env.checkerboard[row][col+i] = 0
+        # clear_sprite(env.baddy.row, env.baddy.col + 1, env.baddy.zombie_sprite_head)
+        # clear_sprite(env.baddy.row + 1, env.baddy.col + 1, env.baddy.zombie_sprite_body)
+        # row = int(env.baddy.row)
+        # col = int(env.baddy.col)
+        # if(zomb_func_first_run == 0):
+        #     for i in range(0,4):
+        #         if(env.checkerboard[row][col+i] != 1):
+        #             window.addstr(8,10, "ERROR zomb stepping in bad spot")
+        #             window.addstr(10,10, "zomb row " + str(row))
+        #             window.addstr(12,10, "zomb col " + str(col))
+        #         env.checkerboard[row][col+i] = 0
             
-            for i in range(1,3):
-                if(env.checkerboard[row+1][col+i] != 1):
-                    window.addstr(8,10, "ERROR zomb stepping in bad spot")
-                    window.addstr(10,10, "zomb row " + str(row))
-                    window.addstr(12,10, "zomb col " + str(col))
-                env.checkerboard[row+1][col+i] = 0
-        zomb_func_first_run = 0
+        #     for i in range(1,3):
+        #         if(env.checkerboard[row+1][col+i] != 1):
+        #             window.addstr(8,10, "ERROR zomb stepping in bad spot")
+        #             window.addstr(10,10, "zomb row " + str(row))
+        #             window.addstr(12,10, "zomb col " + str(col))
+        #         env.checkerboard[row+1][col+i] = 0
+        # zomb_func_first_run = 0
 
         #calculate
-        target = [env.player.row, env.player.column+2] # + 2 for near middle of hero's body
+        target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
         
         if env.baddy.row < target[0]:
             #if env.checkerboard[row+2][col] == 0:
@@ -490,6 +490,8 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
             #TODO add hero sprite changing here
             window.addch(newrow, newrow + i, env.player.spriteRest[i])
         #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
+    env.player.row = newrow
+    env.player.col = newcol
     return True
 
     # TODO change baddy to specific zombie
@@ -521,12 +523,10 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         for i in range(0,env.baddy.len_of_row1):
             env.checkerboard[newrow+1][newcol+i+offset] = character_ID
             window.addch(newrow, newcol+i, zombie.zombie_sprite_body[i])
+
+        env.baddy.row = newrow
+        env.baddy.col = newcol
         return True
-
-
-
-
-
     
 
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
