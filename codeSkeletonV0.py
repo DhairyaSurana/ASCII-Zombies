@@ -45,7 +45,7 @@ zomb_func_first_run = 1
 window.border(0)
 window.timeout(100) #and this?
 
-#the pygame init function was causing a lot of errors 
+#the pygame init function was causing a lot of errors
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 
 hero_sprite_type = 1
@@ -186,11 +186,11 @@ def drawPointBar(x, y, points):
 def init_map(env, lock):
     env.lock = lock
     
-    hero_x =  sw / 4
-    hero_y =  sh / 2
+    hero_x =  sw // 4
+    hero_y =  sh // 2
 
     env.player.row = hero_y
-    env.player.column =  hero_x
+    env.player.col =  hero_x
 
     baddies = [
         [2, 3],
@@ -268,36 +268,38 @@ def move_hero(env, keypress):
 
     bulletFired = False
 
-    #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
-    clear_sprite(env.player.row, env.player.col, env.hero_sprite)
-    #clear from the map
-    if not hero_func_first_run:
-        row = int(env.player.row)
-        col = int(env.player.col)
-        for i in range(0,6):
-            if(env.checkerboard[row][col+i] != -1):
-                window.addstr(8,10, "ERROR IN CLEARING HERO")
-                window.addstr(10,10, "hero row" + str(row))
-                window.addstr(12,10, "hero col" + str(col))
-            env.checkerboard[row][col+i] = 0
-    hero_func_first_run = False
+    # #delete old character pos..optimize later - lets see how python can handle it - also it seems like the type of terminal is relevant to updating speed.. research DOM terminal/shell?
+    # clear_sprite(env.player.row, env.player.col, env.hero_sprite)
+    # #clear from the map
+    # if not hero_func_first_run:
+    #     row = int(env.player.row)
+    #     col = int(env.player.col)
+    #     for i in range(0,6):
+    #         if(env.checkerboard[row][col+i] != -1):
+    #             window.addstr(8,10, "ERROR IN CLEARING HERO")
+    #             window.addstr(10,10, "hero row" + str(row))
+    #             window.addstr(12,10, "hero col" + str(col))
+    #         env.checkerboard[row][col+i] = 0
+    # hero_func_first_run = False
         
-    new_hero_pos = [env.player.row, env.player.col]
+    old_pos = [env.player.row, env.player.col]
 
     if key == curses.KEY_DOWN:
-        if placement_is_valid(row + 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-            new_hero_pos[0] += 1
+        new_pos = [env.player.row + 1, env.player.col]
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_UP:
         if(env.player.health !=  10):#For testing purposes, remove once done
             env.player.health+=1 #For testing purposes, remove once done
-        if placement_is_valid(row - 1, col, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-            new_hero_pos[0] -= 1
+        new_pos = [env.player.row - 1, env.player.col]
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_LEFT:
-        if placement_is_valid(row, col - 1, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-            new_hero_pos[1] -= 1
+        new_pos = [env.player.row, env.player.col - 1]
+        place_if_valid(env,old_pos,new_pos,-1)
     elif key == curses.KEY_RIGHT:
-        if placement_is_valid(row, col + 1, env, env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-            new_hero_pos[1] += 1
+        new_pos = [env.player.row, env.player.col + 1]
+        place_if_valid(env,old_pos,new_pos,-1)
+
+    new_pos = [env.player.row, env.player.col]
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
@@ -305,16 +307,16 @@ def move_hero(env, keypress):
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
-                bullet_info = [new_hero_pos,'right','•']
+                bullet_info = [new_pos,'right','•']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('a') or key == ord('A'):
-                bullet_info = [new_hero_pos,'left','•']
+                bullet_info = [new_pos,'left','•']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('w') or key == ord('W'):
-                bullet_info = [new_hero_pos,'up','•']
+                bullet_info = [new_pos,'up','•']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('s') or key == ord('S'):
-                bullet_info = [new_hero_pos,'down','•']
+                bullet_info = [new_pos,'down','•']
                 env.bullet_queue.put(bullet_info)
     
     if env.player.points == 10:
@@ -341,120 +343,41 @@ def move_hero(env, keypress):
             env.hero_sprite = env.player.spriteMove2
 
         hero_sprite_type = 0
-
-    #update hero pos array
-    env.player.row = new_hero_pos[0]
-    env.player.col = new_hero_pos[1]
-    place_sprite(env.player.row, env.player.col, env.hero_sprite)
-    #update hero on backend
-    row = int(env.player.row)
-    col = int(env.player.col)
-    for i in range(0,6):
-        if(env.checkerboard[row][col+i] != 0):
-            window.addstr(8,10, "ERROR hero stepping in bad spot")
-            window.addstr(10,10, "hero row " + str(row))
-            window.addstr(12,10, "hero col " + str(col))
-        env.checkerboard[row][col+i] = -1
    
     hero_sprite_type+=1
     env.lock.release() # ;)
 
 
 def move_baddies(env):
-    global zomb_func_first_run
+#    global zomb_func_first_run
     while(1):
         env.lock.acquire()
 
-    # zombie_sprite_head = '{#_#}'
-    # zombie_sprite_body = ' (o)'
+        # zombie_sprite_head = '{#_#}'
+        # zombie_sprite_body = ' (o)'
 
-        # clear_sprite(env.baddy.row, env.baddy.col + 1, env.baddy.zombie_sprite_head)
-        # clear_sprite(env.baddy.row + 1, env.baddy.col + 1, env.baddy.zombie_sprite_body)
-        # row = int(env.baddy.row)
-        # col = int(env.baddy.col)
-        # if(zomb_func_first_run == 0):
-        #     for i in range(0,4):
-        #         if(env.checkerboard[row][col+i] != 1):
-        #             window.addstr(8,10, "ERROR zomb stepping in bad spot")
-        #             window.addstr(10,10, "zomb row " + str(row))
-        #             window.addstr(12,10, "zomb col " + str(col))
-        #         env.checkerboard[row][col+i] = 0
-            
-        #     for i in range(1,3):
-        #         if(env.checkerboard[row+1][col+i] != 1):
-        #             window.addstr(8,10, "ERROR zomb stepping in bad spot")
-        #             window.addstr(10,10, "zomb row " + str(row))
-        #             window.addstr(12,10, "zomb col " + str(col))
-        #         env.checkerboard[row+1][col+i] = 0
-        # zomb_func_first_run = 0
-
-        #calculate
         target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
         
+        old_pos = [env.baddy.row,env.baddy.col]
         if env.baddy.row < target[0]:
-            #if env.checkerboard[row+2][col] == 0:
-            if placement_is_valid(env.baddy.row + 1, env.baddy.col, env,
-                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-                env.baddy.row += 1
+            new_pos = [env.baddy.row+1,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
+
         elif env.baddy.row > target[0]:
-            #if env.checkerboard[row-1][col] == 0:
-            if placement_is_valid(env.baddy.row - 1 ,env.baddy.col, env,
-                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-                env.baddy.row -= 1
+            new_pos = [env.baddy.row-1,env.baddy.col]
+            place_if_valid(env,old_pos,new_pos,1)
 
         if env.baddy.col < target[1]:
-            if placement_is_valid(env.baddy.row ,env.baddy.col + 1, env,
-                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-                env.baddy.col += 1
+            new_pos = [env.baddy.row,env.baddy.col+1]
+            place_if_valid(env,old_pos,new_pos,1)
+
         elif env.baddy.col > target[1]:
-            if placement_is_valid(env.baddy.row ,env.baddy.col - 1, env,
-                                env.baddy.zombie_sprite_head, env.baddy.zombie_sprite_body):
-                env.baddy.col -= 1
-
-
-        #place
-        window.addstr(int(env.baddy.row),int(env.baddy.col) + 1, env.baddy.zombie_sprite_head)
-        window.addstr(int(env.baddy.row+1),int(env.baddy.col+1), env.baddy.zombie_sprite_body)
-        row = int(env.baddy.row)
-        col = int(env.baddy.col)
-        for i in range(0,4):
-            if(env.checkerboard[row][col+i] != 0):
-                window.addstr(8,10, "ERROR zomb stepping in bad spot2")
-                window.addstr(10,10, "zomb row " + str(row))
-                window.addstr(12,10, "zomb col " + str(col))
-            env.checkerboard[row][col+i] = 1
-        
-        for i in range(1,3):
-            if(env.checkerboard[row+1][col+i] != 0):
-                window.addstr(8,10, "ERROR zomb stepping in bad spot2")
-                window.addstr(10,10, "zomb row " + str(row))
-                window.addstr(12,10, "zomb col " + str(col))
-            env.checkerboard[row+1][col+i] = 1
-
-
+            new_pos = [env.baddy.row,env.baddy.col-1]
+            place_if_valid(env,old_pos,new_pos,1)
 
         env.lock.release()
-        time.sleep(0.5)
+        time.sleep(0.65)
 
-
-#This function is currently gay
-def auto_turret(env):
-
-    turret = "++||++"
-    turret = "+ [] +"
-    turret = "++++++"
-    
-    turret = "++++++"
-    turret = "+ [] +"
-    turret = "++||++"
-    
-    turret = "++++++"
-    turret = "+ I==="
-    turret = "++++++"
-
-    turret = "++++++"
-    turret = "===I +"
-    turret = "++++++"
  
 def place_turret(x, y, env):
 
@@ -478,7 +401,8 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
     if(character_ID == -1):
         #check
         for i in range(0,env.player.len_of_sprite):
-            if(env.checkerboard[newrow][newcol+i] != 0):
+            if(env.checkerboard[newrow][newcol+i] != 0 and 
+                env.checkerboard[newrow][newcol+i] != character_ID):
                 return False
         #wipe
         for i in range(0,env.player.len_of_sprite):
@@ -488,11 +412,12 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         for i in range(0,env.player.len_of_sprite):
             env.checkerboard[newrow][newcol+i] = -1
             #TODO add hero sprite changing here
-            window.addch(newrow, newrow + i, env.player.spriteRest[i])
+            window.addch(newrow, newcol + i, env.player.spriteRest[i])
         #window.addstr(8,10, "ERROR zomb stepping in bad spot") #faster likely
-    env.player.row = newrow
-    env.player.col = newcol
-    return True
+        
+        env.player.row = newrow
+        env.player.col = newcol
+        return True
 
     # TODO change baddy to specific zombie
     if(character_ID >= 1):
@@ -513,8 +438,8 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
             window.addch(oldrow, oldcol + i, ' ')
         
         for i in range(0,env.baddy.len_of_row1):
-            env.checkerboard[oldrow][oldcol+i+offset] = 0
-            window.addch(oldrow, oldcol + i + offset, ' ')
+            env.checkerboard[oldrow+1][oldcol+i+offset] = 0
+            window.addch(oldrow+1, oldcol + i + offset, ' ')
         #place
         for i in range(0,env.baddy.len_of_row0):
             env.checkerboard[newrow][newcol+i] = character_ID
@@ -522,7 +447,7 @@ def place_if_valid(env, old_origin, new_origin, character_ID ):
         
         for i in range(0,env.baddy.len_of_row1):
             env.checkerboard[newrow+1][newcol+i+offset] = character_ID
-            window.addch(newrow, newcol+i, zombie.zombie_sprite_body[i])
+            window.addch(newrow+1, newcol+i+offset, zombie.zombie_sprite_body[i])
 
         env.baddy.row = newrow
         env.baddy.col = newcol
