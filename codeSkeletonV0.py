@@ -499,6 +499,16 @@ def fire_turret(env, tur, dir):
 
 
 def automateTurret2(env):
+    """
+    yo! Since theyre could be a lotta turrets, this will go thru the array for each turret and check the firing directions at random.
+    if it does happen to see some shit, it will shoot a "shotgun blast" sort of thing.
+            @@@@
+    === @@@@@@@@ ->
+            @@@@
+
+    I hope the diagram made sense, if it's confusing, you can look at the halfway finished function, shoot turret for a visual of the shot scatter
+    !Anyways, you can copy/reuse a lot of code from the shooting/killing function again, as that works now! Especially the killZombie() one.
+    """
 
     while 1:
 
@@ -716,10 +726,10 @@ def place_if_valid(env, old_origin, new_origin, character_ID):
             return False
 
     #Turret
-   if(character_ID <= -10 and character_ID >= -20):
-       for i in range(0, env.playerTurret.len_of_row):
-           env.checkerboard[env.player.row][env.player.col + 10] = character_ID
-            
+    if(character_ID <= -10 and character_ID >= -20):
+        for i in range(0, env.playerTurret.len_of_row):
+            env.checkerboard[env.player.row][env.player.col + 10] = character_ID
+                
     
 
 def placement_is_valid(row, col, env, ln1_sprite, ln2_sprite = "", ln3_sprite = "", ln4_sprite = "" ):
