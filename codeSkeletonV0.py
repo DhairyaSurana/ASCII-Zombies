@@ -364,9 +364,6 @@ def move_hero(env, keypress):
 
         if key == ord('e'):
             clear_sprite((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret")
-           # turret_info = [int(env.player.col) + 10, int(env.player.row)]
-           # env.turret_queue.put(turret_info)
-           # place_turret(int(env.player.col) + 10, int(env.player.row), "up", env)
             env.turrets.append(turret())
             env.turrets[-1].row = env.player.row
             env.turrets[-1].col = env.player.col + 10
@@ -449,82 +446,10 @@ def move_baddies(env, counter, timeValue):
         time.sleep(0.45) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
 
 
-def automateTurret(env):
-
-    while 1:
-
-        if len(env.turrets) > 0:
-            env.lock.acquire()
-            for turret in env.turrets:
-                #Currently points to player, this will change in the future
-                target = [env.player.row, env.player.col]
-
-                if turret.row < target[0]:
-                    clear_turret(turret.col, turret.row, "right", env)
-                    place_turret(turret.col, turret.row, "down", env)
-
-
-                elif turret.row > target[0]:
-                    clear_turret(turret.col, turret.row, "left", env)
-                    place_turret(turret.col, turret.row, "up", env)
-
-
-                elif turret.col < target[1]: 
-                    clear_turret(turret.col, turret.row, "down", env)
-                    place_turret(turret.col, turret.row, "right", env)
-
-        
-                elif env.turrets[-1].col > target[1]:
-                    clear_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
-                    place_turret(env.turrets[-1].col, env.turrets[-1].row, "left", env)
-           
-        
-            env.lock.release()
-            time.sleep(0.65)
-
-# def fire_turret(env, tur, dir):
-#     if dir == "right":
-#         dist = 25
-#         for i in range(0,dist):
-#             env.lock.acquire()
-
-#             bullet_origin = [tur.row + 1, tur.col + 6]
-#             bullet_type = '@'
-            
-#             clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-#             place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
-#             bullet_row = bullet_origin[0]
-#             bullet_col = bullet_origin[1] + i
-#             if killZombie(env, bullet_row, bullet_col):
-#                 clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-#                 env.lock.release() 
-#                 return True
-#             if(i>13): #SCATTERSHOT!
-#                 clear_sprite(bullet_origin[0] - 1, bullet_origin[1]+i-1, ' ')
-#                 clear_sprite(bullet_origin[0] + 1, bullet_origin[1]+i-1, ' ')
-                
-#                 place_sprite(bullet_origin[0] - 1, bullet_origin[1]+i, bullet_type)
-#                 place_sprite(bullet_origin[0] + 1, bullet_origin[1]+i, bullet_type)
-                
-#                 if killZombie(env, bullet_row - 1, bullet_col) or killZombie(env, bullet_row + 1, bullet_col) :
-#                     clear_sprite(bullet_origin[0] - 1, bullet_origin[1]+i-1, ' ')
-#                     clear_sprite(bullet_origin[0] + 1, bullet_origin[1]+i-1, ' ')
-#                     clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-#                     env.lock.release()
-#                     return True
-                    
-                        
-            
-#             env.lock.release()
-#             time.sleep(0.02)        
-
-#     # else:
-#     #     dist = 7
-
 def fire_turret(env, tur, dir):
     
     if dir == "right":
-        dist = 25
+        dist = 30
         for i in range(0,dist):
             env.lock.acquire()
 
@@ -535,25 +460,54 @@ def fire_turret(env, tur, dir):
             place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
             bullet_row = bullet_origin[0]
             bullet_col = bullet_origin[1] + i
-            
-            if killZombie(env, bullet_row, bullet_col):
-                clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-                env.lock.release() 
-                return True
-            
-            if( i == 13):
+                        
+            if( i == dist//2):
                 shrapnel_origin = [bullet_row, bullet_col]
                 bullet_info = [shrapnel_origin,'up','±']
                 bullet_info2 = [shrapnel_origin,'down','±']
                 env.bullet_queue.put(bullet_info)
                 env.bullet_queue.put(bullet_info2)
+
+            if killZombie(env, bullet_row, bullet_col):
+                clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
+                env.lock.release() 
+                return True
+                    
+            env.lock.release()
+            time.sleep(0.02)        
+
+    elif dir == "left":
+        dist = 30
+        for i in range(0,dist):
+            env.lock.acquire()
+
+            bullet_origin = [tur.row + 1, tur.col - 2]
+            bullet_type = '@'
+            
+            clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
+            place_sprite(bullet_origin[0], bullet_origin[1]-i, bullet_type)
+            bullet_row = bullet_origin[0]
+            bullet_col = bullet_origin[1] - i
+                        
+            if( i == dist//2):
+                shrapnel_origin = [bullet_row, bullet_col]
+                bullet_info = [shrapnel_origin,'up','±']
+                bullet_info2 = [shrapnel_origin,'down','±']
+                env.bullet_queue.put(bullet_info)
+                env.bullet_queue.put(bullet_info2)
+
+            if killZombie(env, bullet_row, bullet_col):
+                clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
+                env.lock.release() 
+                return True
                     
             env.lock.release()
             time.sleep(0.02)        
 
     elif dir == "down":
-        dist = 7
+        dist = 10
         for i in range(0,dist):
+
             env.lock.acquire()
 
             bullet_origin = [tur.row + 3, tur.col + 3]
@@ -564,28 +518,54 @@ def fire_turret(env, tur, dir):
             bullet_row = bullet_origin[0]+i
             bullet_col = bullet_origin[1]
 
-            # if killZombie(env, bullet_row, bullet_col):
-            #     clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
-            #     env.lock.release() 
-            #     return True
-            """ ! """
+            if( i == dist//2):
+                shrapnel_origin = [bullet_row, bullet_col]
+                bullet_info = [shrapnel_origin,'left','¥']
+                bullet_info2 = [shrapnel_origin,'right','¥']
+                env.bullet_queue.put(bullet_info)
+                env.bullet_queue.put(bullet_info2)
             
+            if killZombie(env, bullet_row, bullet_col):
+                clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
+                env.lock.release() 
+                return True
+
+            env.lock.release()
+            time.sleep(0.02)  
+
+    elif dir == "up":
+        dist = 10
+        for i in range(0,dist):
+
+            env.lock.acquire()
+
+            bullet_origin = [tur.row - 1, tur.col + 3]
+            bullet_type = '@'
+
+            clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
+            place_sprite(bullet_origin[0]-i, bullet_origin[1], bullet_type)
+            bullet_row = bullet_origin[0]-i
+            bullet_col = bullet_origin[1]
+
+            if( i == dist//2):
+                shrapnel_origin = [bullet_row, bullet_col]
+                bullet_info = [shrapnel_origin,'left','¥']
+                bullet_info2 = [shrapnel_origin,'right','¥']
+                env.bullet_queue.put(bullet_info)
+                env.bullet_queue.put(bullet_info2)
+            
+            if killZombie(env, bullet_row, bullet_col):
+                clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
+                env.lock.release() 
+                return True
+
             env.lock.release()
             time.sleep(0.02)  
 
 
 
-def automateTurret2(env):
-    """
-    yo! Since theyre could be a lotta turrets, this will go thru the array for each turret and check the firing directions at random.
-    if it does happen to see some shit, it will shoot a "shotgun blast" sort of thing.
-            @@@@
-    === @@@@@@@@ ->
-            @@@@
 
-    I hope the diagram made sense, if it's confusing, you can look at the halfway finished function, shoot turret for a visual of the shot scatter
-    !Anyways, you can copy/reuse a lot of code from the shooting/killing function again, as that works now! Especially the killZombie() one.
-    """
+def automateTurret2(env):
 
     while 1:
 
@@ -594,72 +574,63 @@ def automateTurret2(env):
             env.lock.acquire()
             for tur in env.turrets:
                 
-                horiz_targeting_dist = 14
-                vert_targeting_dist = 6
+                horiz_targeting_dist = 6+14
+                vert_targeting_dist = 3+6
 
                 #target right randomly
                 if(random.randint(0,1)):
                     
                     place_turret(tur.col, tur.row, "right", env)
-                    for rcols in range(0,horiz_targeting_dist, 2):
+
+                    for rcols in range(0,horiz_targeting_dist, 4):
+
                         if tur.col + rcols < sw :
                             if env.checkerboard[tur.row][tur.col + rcols] >= 1:
-                            #if env.checkerboard[tur.row+1][tur.col + rcols] == -1:
                                 env.lock.release()
                                 fire_turret(env, tur, "right")
                                 env.lock.acquire()
 
-                # #target right randomly #!
-                # if(random.randint(0,1)):
+                #target left randomly #!
+                if(random.randint(0,1)):
                     
-                #     place_turret(tur.col, tur.row, "right", env)
-                #     for rcols in range(0,horiz_targeting_dist, 2):
-                #         if tur.col + rcols < sw :
-                #             if env.checkerboard[tur.row][tur.col + rcols] >= 1:
-                #             #if env.checkerboard[tur.row+1][tur.col + rcols] == -1:
-                #                 env.lock.release()
-                #                 fire_turret(env, tur, "right")
-                #                 env.lock.acquire()
+                    place_turret(tur.col, tur.row, "left", env)
+
+                    for lcols in range(0,horiz_targeting_dist, 4):
+
+                        if tur.col - lcols > 1 :
+                            if env.checkerboard[tur.row][tur.col - lcols] >= 1:
+                                env.lock.release()
+                                fire_turret(env, tur, "left")
+                                env.lock.acquire()
                 
 
                 #target down randomly
                 elif(random.randint(0,1)):
+
                     place_turret(tur.col, tur.row, "down", env)
+
                     for drows in range(0, vert_targeting_dist):
+
                         if tur.row + drows < sh:
                                 if env.checkerboard[tur.row + drows][tur.col] >= 1:
                                     env.lock.release()
                                     fire_turret(env, tur, "down")
-                                    env.lock.aquire()
+                                    env.lock.acquire()
 
+                #target up randomly
+                elif(random.randint(0,1)):
 
-                # if turret.row < target[0]:
-                #     clear_turret(turret.col, turret.row, "right", env)
-                #     place_turret(turret.col, turret.row, "down", env)
+                    place_turret(tur.col, tur.row, "up", env)
 
+                    for urows in range(0, vert_targeting_dist):
 
-                # elif turret.row > target[0]:
-                #     clear_turret(turret.col, turret.row, "left", env)
-                #     place_turret(turret.col, turret.row, "up", env)
+                        if tur.row - urows > 1:
+                                if env.checkerboard[tur.row - urows][tur.col] >= 1:
+                                    env.lock.release()
+                                    fire_turret(env, tur, "up")
+                                    env.lock.acquire()
 
-
-                # elif turret.col < target[1]: 
-                #     clear_turret(turret.col, turret.row, "down", env)
-                #     place_turret(turret.col, turret.row, "right", env)
-
-        
-                # elif env.turrets[-1].col > target[1]:
-                #     clear_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
-                #     place_turret(env.turrets[-1].col, env.turrets[-1].row, "left", env)
-           
-        
             env.lock.release()
-            
-
-
- 
-
-
 
  
 def place_turret(x, y, direction, env):
@@ -876,7 +847,7 @@ def killZombie(env, bullet_row, bullet_col):
                     death_zombie = env.zombie_list[zombieID-1]
                     death_zombie.alive = False
                     clear_zombie_rows(death_zombie.row, death_zombie.col, env, 1, death_zombie)
-                    env.player.points+=1
+                    env.player.points += 1
                     return True
     return False
 
@@ -899,6 +870,8 @@ def fireBullet(env):
             distance = (sw // 5)
             if(bullet_type == '±'): #for shrapnel!
                 distance = 6
+            elif(bullet_type == '¥'):
+                distance = 3
             for i in range(1,distance):
                 env.lock.acquire()
                 
