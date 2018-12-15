@@ -348,13 +348,13 @@ def move_hero(env, keypress):
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
         #s  drawExplosion(, bullet_col)
-        if(time.time() > (last_time_fired)+ 0.45):
+        if(time.time() > (last_time_fired)+ 0.3):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
-                bullet_info = [new_pos,'right','⁍']
+                bullet_info = [new_pos,'right','•'] #WARNING, IF YOU CHANGE THE BULLET CHARACTERS, YOU'LL BREAK THE POINTS
                 env.bullet_queue.put(bullet_info)
             elif key == ord('a') or key == ord('A'):
-                bullet_info = [new_pos,'left','⁌']
+                bullet_info = [new_pos,'left','•']
                 env.bullet_queue.put(bullet_info)
             elif key == ord('w') or key == ord('W'):
                 bullet_info = [new_pos,'up','•']
@@ -452,7 +452,7 @@ def move_baddies(env, counter, timeValue):
 
         counter += 1
         env.lock.release()
-        time.sleep(0.5) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
+        time.sleep(0.4) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
 
 
 def fire_turret(env, tur, dir):
@@ -478,6 +478,7 @@ def fire_turret(env, tur, dir):
                 env.bullet_queue.put(bullet_info2)
 
             if killZombie(env, bullet_row, bullet_col):
+                env.player.points -= 1 #no extra points!
                 clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
                 env.lock.release() 
                 return True
@@ -506,6 +507,7 @@ def fire_turret(env, tur, dir):
                 env.bullet_queue.put(bullet_info2)
 
             if killZombie(env, bullet_row, bullet_col):
+                env.player.points -= 1 #no extra points!
                 clear_sprite(bullet_origin[0], bullet_origin[1]-i+1, ' ')
                 env.lock.release() 
                 return True
@@ -535,6 +537,7 @@ def fire_turret(env, tur, dir):
                 env.bullet_queue.put(bullet_info2)
             
             if killZombie(env, bullet_row, bullet_col):
+                env.player.points -= 1 #no extra points!
                 clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
                 env.lock.release() 
                 return True
@@ -564,6 +567,7 @@ def fire_turret(env, tur, dir):
                 env.bullet_queue.put(bullet_info2)
             
             if killZombie(env, bullet_row, bullet_col):
+                env.player.points -= 1 #no extra points!
                 clear_sprite(bullet_origin[0]-i+1, bullet_origin[1], ' ')
                 env.lock.release() 
                 return True
@@ -576,7 +580,7 @@ def automateTurret2(env):
 
     while 1:
 
-        time.sleep(0.5)
+        time.sleep(0.75)
         if len(env.turrets) > 0:
             env.lock.acquire()
             for tur in env.turrets:
@@ -820,45 +824,6 @@ def drawExplosion(y, x):
    # clear_sprite(y, x, "ꙮ")
     #clear_sprite(y, x,  "꙰")
 
-def automateTurret(env):
-
-    while 1:
-        turret_info = None
-        try:
-            turret_info = env.turret_info.get_nowait()
-        except:
-            pass
-        if turret_info is not None:
-
-            x = turret_info[0]
-            y = turret_info[1]
-
-            time.sleep(2)
-            env.lock.acquire()
-            place_turret(x, y, "up", env)
-            env.lock.release()
-
-            time.sleep(2)
-
-            env.lock.acquire()
-            clear_turret(x, y, "up", env)
-            place_turret(x, y, "right", env)
-            env.lock.release()
-
-            time.sleep(2)
-            
-            env.lock.acquire()
-            clear_turret(x, y, "right", env)
-            place_turret(x, y, "down", env)
-            env.lock.release()
-
-            time.sleep(2)
-
-            env.lock.acquire()
-            clear_turret(x, y, "down", env)
-            place_turret(x, y, "left", env)
-            env.lock.release()
-
 #run in a locked function!
 def killZombie(env, bullet_row, bullet_col):
     """
@@ -905,6 +870,8 @@ def fireBullet(env):
                     bullet_row = bullet_origin[0]
                     bullet_col = bullet_origin[1] + i
                     if killZombie(env, bullet_row, bullet_col):
+                        if(bullet_type != '•'): #then a turret fired it.
+                            env.player.points -= 1 #no extra points!
                         env.lock.release() 
                         break
 
@@ -914,6 +881,8 @@ def fireBullet(env):
                     bullet_row = bullet_origin[0]
                     bullet_col = bullet_origin[1] - i
                     if killZombie(env, bullet_row, bullet_col):
+                        if(bullet_type != '•'): #then a turret fired it.
+                            env.player.points -= 1 #no extra points!
                         env.lock.release() 
                         break
 
@@ -923,6 +892,8 @@ def fireBullet(env):
                     bullet_row = bullet_origin[0] - i
                     bullet_col = bullet_origin[1]
                     if killZombie(env, bullet_row, bullet_col):
+                        if(bullet_type != '•'): #then a turret fired it.
+                            env.player.points -= 1 #no extra points!
                         env.lock.release() 
                         break
 
@@ -932,6 +903,8 @@ def fireBullet(env):
                     bullet_row = bullet_origin[0] + i
                     bullet_col = bullet_origin[1]
                     if killZombie(env, bullet_row, bullet_col):
+                        if(bullet_type != '•'): #then a turret fired it.
+                            env.player.points -= 1 #no extra points!
                         env.lock.release() 
                         break
                
