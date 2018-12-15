@@ -1,6 +1,9 @@
 #This file assumes that python3.X has already been
 #installed on the system
 
+#python 3.7 perferred.
+#not tested on Windows or MacOS.
+
 import importlib.util
 import subprocess
 import sys
