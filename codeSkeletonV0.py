@@ -11,6 +11,7 @@ import math
 # $ python3.7 -m pip install pygame
 import pygame #make sure we can install on user's computers.. {maybe do an install from source for deployment!}
 from pygame.locals import *
+from pygame import mixer
 import numpy as np   #non stl.. $ pip3 install numpy # $python3.7 -m pip install numpy
 
 
@@ -49,6 +50,7 @@ window.timeout(100) #and this?
 
 #the pygame init function was causing a lot of errors
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
+mixer.init()
 
 old_health = 10
 old_points = 10
@@ -255,6 +257,9 @@ def init_map(env, lock):
                 
 
 def display_intro_message():
+
+    song = mixer.Sound('ost_1_SQ.wav') #works!
+    song.play()
 
     YELLOW_TEXT = 1
     RED_TEXT = 2
