@@ -535,6 +535,7 @@ def fire_turret(env, tur, dir):
             place_sprite(bullet_origin[0], bullet_origin[1]+i, bullet_type)
             bullet_row = bullet_origin[0]
             bullet_col = bullet_origin[1] + i
+            
             if killZombie(env, bullet_row, bullet_col):
                 clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
                 env.lock.release() 
@@ -550,10 +551,27 @@ def fire_turret(env, tur, dir):
             env.lock.release()
             time.sleep(0.02)        
 
-    #else:
-        
-    #     dist = 7
+    elif dir == "down":
+        dist = 7
+        for i in range(0,dist):
+            env.lock.acquire()
 
+            bullet_origin = [tur.row + 3, tur.col + 3]
+            bullet_type = '@'
+
+            clear_sprite(bullet_origin[0]+i-1, bullet_origin[1], ' ')
+            place_sprite(bullet_origin[0]+i, bullet_origin[1], bullet_type)
+            bullet_row = bullet_origin[0]+i
+            bullet_col = bullet_origin[1]
+
+            # if killZombie(env, bullet_row, bullet_col):
+            #     clear_sprite(bullet_origin[0], bullet_origin[1]+i-1, ' ')
+            #     env.lock.release() 
+            #     return True
+            """ ! """
+            
+            env.lock.release()
+            time.sleep(0.02)  
 
 
 
@@ -610,7 +628,6 @@ def automateTurret2(env):
                     for drows in range(0, vert_targeting_dist):
                         if tur.row + drows < sh:
                                 if env.checkerboard[tur.row + drows][tur.col] >= 1:
-                                #if env.checkerboard[tur.row + drows][tur.col] == -1:
                                     env.lock.release()
                                     fire_turret(env, tur, "down")
                                     env.lock.aquire()
