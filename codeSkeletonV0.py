@@ -145,7 +145,7 @@ class environment:
     checkerboard = np.zeros((sh,sw),dtype=int) 
 
     #0 for nothing there, -1 for player, -10 to -20 for turret, -5 for walls,
-    #  1 to inf correspond to zombos
+    #  1 to inf correspond to zombos, -99 is finish line
 
 def draw_finish_line(env):
     
@@ -332,8 +332,6 @@ def move_hero(env, keypress):
         new_pos = [env.player.row + 1, env.player.col]
         
     elif key == curses.KEY_UP:
-        if(env.player.health !=  10):#For testing purposes, remove once done
-            env.player.health+=1 #For testing purposes, remove once done
         new_pos = [env.player.row - 1, env.player.col]
         
     elif key == curses.KEY_LEFT:
@@ -364,7 +362,7 @@ def move_hero(env, keypress):
                 bullet_info = [new_pos,'down','•']
                 env.bullet_queue.put(bullet_info)
     
-    if env.player.points == 10:
+    if env.player.points >= 10:
         window.addstr((sh // 2) - ((sh // 2) - 2), (sw // 2) - ((sw // 2) - 30), "Press E to build a turret", curses.A_BLINK)
 
         if key == ord('e'):
@@ -374,7 +372,7 @@ def move_hero(env, keypress):
             env.turrets[-1].col = env.player.col + 10
             place_turret(env.turrets[-1].col, env.turrets[-1].row, "up", env)
 
-            env.player.points = 0
+            env.player.points -= 10
 
     elif env.player.points != 10:
         if key == ord('i'):
@@ -419,7 +417,8 @@ def move_baddies(env, counter, timeValue):
             eachZombie.col = randint(sw - (sw // 10),sw - (sw // 20))
             env.zombie_list.append(eachZombie)    
 
-        target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
+        #target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
+        target = [sh//2 + finishLine.num_rows_or_height//2, 1 ]
 
         for each_zombie in env.zombie_list:
             if each_zombie.alive:
@@ -448,7 +447,7 @@ def move_baddies(env, counter, timeValue):
 
         counter += 1
         env.lock.release()
-        time.sleep(0.45) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
+        time.sleep(0.5) #SPEED UP OR SLOW DOWN THE GAME WITH THIS..LAG FIX OR LAG ++
 
 
 def fire_turret(env, tur, dir):
@@ -568,14 +567,12 @@ def fire_turret(env, tur, dir):
             time.sleep(0.02)  
 
 
-
-
 def automateTurret2(env):
 
     while 1:
 
+        time.sleep(0.5)
         if len(env.turrets) > 0:
-            time.sleep(0.45)
             env.lock.acquire()
             for tur in env.turrets:
                 
@@ -640,13 +637,11 @@ def automateTurret2(env):
  
 def place_turret(x, y, direction, env):
 
-    
     for cols in range(0, 6):
         env.checkerboard[y][x+cols] = -10
         env.checkerboard[y+1][x+cols] = -10
         env.checkerboard[y+2][x+cols] = -10
     
-
     if(direction == "up"):
         window.addstr(y, x, env.playerTurret.facing_up_ln1)
         window.addstr(y + 1, x, env.playerTurret.facing_up_ln2)
@@ -690,10 +685,22 @@ def verify_zombie_rows(row, col, env, offset, character_ID, ZOMBIE):
     """
     for i in range(0,ZOMBIE.len_of_row0):
         if(env.checkerboard[row][col+i] != 0 and env.checkerboard[row][col+i] != character_ID):
+                        
+            if(env.checkerboard[row][col+i] == -1): #hit the player
+                
+                env.player.health -= 1
+                if(env.player.health < 1):
+                    game_over()
+            if(env.checkerboard[row][col+i] == -99):
+                    game_over()
+                    
             return False
     
     for i in range(0,ZOMBIE.len_of_row1):
         if(env.checkerboard[row+1][col+i+offset] != 0 and env.checkerboard[row+1][col+i+offset] != character_ID ):
+
+            #TODO!!!!
+
             return False
 
     return True
@@ -717,7 +724,6 @@ def clear_zombie_rows(row, col, env, offset, ZOMBIE):
         env.checkerboard[row+1][col+i+offset] = 0
         window.addch(row+1, col + i + offset, ' ')
 
-
 def place_player(row, col, env):
 
     for i in range(0,env.player.len_of_sprite):
@@ -740,7 +746,7 @@ def place_zombie_rows(row, col, offset,  env, character_ID, ZOMBIE):
 
 ################################################ Finish Changing ######################################
 
-#character ID: zombie = range(1,999), hero = -1 
+#character ID: zombie = range(1,999), hero = -1 , etc..
 def place_if_valid(env, old_origin, new_origin, character_ID):
     
     #first check if placement is valid
@@ -857,8 +863,6 @@ def killZombie(env, bullet_row, bullet_col):
     return False
 
 
-
-
 def fireBullet(env): 
     while 1:
         bullet_info = None
@@ -966,7 +970,7 @@ def main():
         else:
             move_hero(env, key)
 
-        window.border(0)
+        #window.border(0)
 
         drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), env.player.health)
         drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), env.player.points)
