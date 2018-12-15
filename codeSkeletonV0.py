@@ -52,7 +52,7 @@ window.timeout(100) #and this?
 #pygame.mixer.init(44100, -16,2,2048) #I dunno what all these numbers do.. but it makes the sound work! :P
 mixer.init()
 
-old_health = 10
+old_health = 3
 old_points = 10
 #old_health_bar = "❤" * old_health
 bullet_row = 1
@@ -101,7 +101,7 @@ class turret:
 class hero:
     col = 0
     row = 0
-    health = 10
+    health = 3
     points = 0
 
     spriteRest = "┌(ᶱ1ᶱ)┐"
@@ -167,7 +167,6 @@ def create_bounds(env):
         env.checkerboard[row][sw-1] = -5
         
 
-
 def dynamic_print(timeSpan, x, y, text, color):
 
      tempX = x
@@ -177,6 +176,7 @@ def dynamic_print(timeSpan, x, y, text, color):
         window.refresh()
         time.sleep(timeSpan)
         tempX+=1
+
 
 def boundError(x, y):
 
@@ -264,16 +264,18 @@ def display_intro_message():
     YELLOW_TEXT = 1
     RED_TEXT = 2
 
+    scale = 0.15 #time scale
+
     curses.init_pair(YELLOW_TEXT, curses.COLOR_YELLOW, curses.COLOR_BLACK)
 
-    dynamic_print(0.2,(sw // 2) - 15, (sh // 2) - 5, "Sudochad Stud|os presents ...", YELLOW_TEXT)
-    time.sleep(3)
-    dynamic_print(0.1, (sw // 2) - 15, (sh // 2) - 5, "                             ", YELLOW_TEXT)
+    dynamic_print(0.2*scale,(sw // 2) - 15, (sh // 2) - 5, "Sudochad Stud|os presents ...", YELLOW_TEXT)
+    time.sleep(3*scale)
+    dynamic_print(0.1*scale, (sw // 2) - 15, (sh // 2) - 5, "                             ", YELLOW_TEXT)
     
     curses.init_pair(RED_TEXT, curses.COLOR_RED, curses.COLOR_BLACK)
-    dynamic_print(0.5, (sw // 2) - 10, (sh // 2), "ASCII ZOMBIES", RED_TEXT)
-    time.sleep(2)
-    dynamic_print(0.05, (sw // 2) - 10, (sh // 2), "              ", RED_TEXT)
+    dynamic_print(0.5*scale, (sw // 2) - 10, (sh // 2), "ASCII ZOMBIES", RED_TEXT)
+    time.sleep(2*scale)
+    dynamic_print(0.05*scale, (sw // 2) - 10, (sh // 2), "              ", RED_TEXT)
 
 
 def display_title():
@@ -345,8 +347,7 @@ def move_hero(env, keypress):
 
     if key == ord('d') or key == ord('D') or key == ord('a') or key == ord('A') or key == ord('s') or key == ord('S') or key == ord('w') or key == ord('W'):
         bulletFired = True
-      #s  drawExplosion(, bullet_col)
-        env.player.health-=1 #For testing purposes, remove once done
+        #s  drawExplosion(, bullet_col)
         if(time.time() > (last_time_fired)+ 0.45):
             last_time_fired = time.time()
             if key == ord('d') or key == ord('D'):
@@ -374,9 +375,8 @@ def move_hero(env, keypress):
 
             env.player.points -= 10
 
-    elif env.player.points != 10:
-        if key == ord('i'):
-            env.player.points+=1
+    elif key == ord('i'):
+        env.player.points+=1
         
     if env.player.hero_sprite_type == 1:
         if bulletFired:
@@ -422,16 +422,21 @@ def move_baddies(env, counter, timeValue):
 
         for each_zombie in env.zombie_list:
             if each_zombie.alive:
-                if each_zombie.row < target[0]:
+
+                if(random.randint(1,10)==1):
+                    target = [env.player.row, env.player.col+2] # + 2 for near middle of hero's body
+
+                if each_zombie.row < target[0] and random.randint(1,10) > 2:
                     new_pos = [each_zombie.row+1,each_zombie.col]
                     old_pos = [each_zombie.row,each_zombie.col]
                     place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
-                
-                elif each_zombie.row > target[0]:
+                #elif each_zombie.row > target[0]:
+                else:
                     new_pos = [each_zombie.row-1,each_zombie.col]
                     old_pos = [each_zombie.row,each_zombie.col]
                     place_if_valid(env,old_pos,new_pos, each_zombie.zombie_ID)
         
+
                 if each_zombie.col < target[1]:
                     new_pos = [each_zombie.row,each_zombie.col+1]
                     old_pos = [each_zombie.row,each_zombie.col]
@@ -676,8 +681,9 @@ def verify_player_row(row, col, env, character_ID):
             return False
     return True
 
-def verify_zombie_rows(row, col, env, offset, character_ID, ZOMBIE):
+def verify_zombie_rows(row, col, env, offset, character_ID, ZOMBIE): 
     """
+    game over happens thru here. also -
     This function verifies if the location is valid to either
     having a new zombie appear in this location or having an
     existing zombie move to this location. The function return
@@ -691,19 +697,28 @@ def verify_zombie_rows(row, col, env, offset, character_ID, ZOMBIE):
                 env.player.health -= 1
                 if(env.player.health < 1):
                     game_over()
-            if(env.checkerboard[row][col+i] == -99):
+
+            elif(env.checkerboard[row][col+i] == -99):
                     game_over()
                     
             return False
     
     for i in range(0,ZOMBIE.len_of_row1):
         if(env.checkerboard[row+1][col+i+offset] != 0 and env.checkerboard[row+1][col+i+offset] != character_ID ):
+            
+            if(env.checkerboard[row][col+i] == -1): #hit the player
+                
+                env.player.health -= 1
+                if(env.player.health < 1):
+                    game_over()
 
-            #TODO!!!!
+            elif(env.checkerboard[row][col+i] == -99):
+                    game_over()
 
             return False
 
     return True
+
 
 def clear_player_row(row, col, env):
 
@@ -936,6 +951,15 @@ def fireBullet(env):
             env.lock.release()
             
 
+def game_over():
+    window.clear()
+    window.addstr(int(sh//2),int(sw//2),"u lose.")
+    time.sleep(1)
+    subprocess.call(["reset"])
+    quit()     
+
+
+
 def main():
 
     display_intro_message()
@@ -975,9 +999,7 @@ def main():
         drawHealthBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 1), env.player.health)
         drawPointBar((sw // 2) - ((sw // 2) - 1), (sh // 2) - ((sh // 2) - 2), env.player.points)
 
-        
-
-    
+            
     ## DONT FORGET TO JOIN THY THREADS!
     baddies_thread.join()
     bullets_thread.join()
