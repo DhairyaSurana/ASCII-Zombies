@@ -100,7 +100,7 @@ class hero:
     col = 0
     row = 0
     health = 10
-    points = 10
+    points = 0
 
     spriteRest = "┌(ᶱ1ᶱ)┐"
 
@@ -876,6 +876,7 @@ def killZombie(env, bullet_row, bullet_col):
                     death_zombie = env.zombie_list[zombieID-1]
                     death_zombie.alive = False
                     clear_zombie_rows(death_zombie.row, death_zombie.col, env, 1, death_zombie)
+                    env.player.points+=1
                     return True
     return False
 
@@ -955,12 +956,15 @@ def fireBullet(env):
 
 def main():
 
+    display_intro_message()
+
     env = environment()
     lock = threading.Lock()
     init_map(env, lock)
+
     counter = 0
     timeValue = 0
-    #display_intro_message()
+   
     
     baddies_thread = Thread(target=move_baddies,args=(env, counter, timeValue, ))
     baddies_thread.daemon = True #exit when main exits
